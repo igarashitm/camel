@@ -1,0 +1,71 @@
+RULE mqtt trace client-send
+    CLASS org.fusesource.mqtt.client.CallbackConnection
+    METHOD send(org.fusesource.mqtt.client.CallbackConnection$Request)
+    HELPER org.apache.camel.example.mqtt.BytemanHelper
+    AT ENTRY
+    IF TRUE
+    DO traceClientSend($1.frame, $0.mqtt.connect.clientId())
+ENDRULE
+
+RULE mqtt trace client-receive
+    CLASS org.fusesource.mqtt.client.CallbackConnection
+    METHOD processFrame(org.fusesource.mqtt.codec.MQTTFrame)
+    HELPER org.apache.camel.example.mqtt.BytemanHelper
+    AT ENTRY
+    IF TRUE
+    DO traceClientReceive($1, $0.mqtt.connect.clientId())
+ENDRULE
+
+RULE mqtt trace server-receive
+    CLASS org.apache.activemq.transport.mqtt.MQTTProtocolConverter
+    METHOD onMQTTCommand(org.fusesource.mqtt.codec.MQTTFrame)
+    HELPER org.apache.camel.example.mqtt.BytemanHelper
+    AT ENTRY
+    IF TRUE
+    DO traceServerReceive($1, $0.clientId)
+ENDRULE
+
+RULE mqtt trace server-send
+    CLASS org.apache.activemq.transport.mqtt.MQTTProtocolConverter
+    METHOD onActiveMQCommand(org.apache.activemq.command.Command)
+    HELPER org.apache.camel.example.mqtt.BytemanHelper
+    AT ENTRY
+    IF TRUE
+    DO traceServerSend($1, $0.clientId)
+ENDRULE
+
+RULE mqtt trace camel-producer
+    CLASS org.apache.camel.component.mqtt.MQTTProducer
+    METHOD process(org.apache.camel.Exchange,org.apache.camel.AsyncCallback)
+    HELPER org.apache.camel.example.mqtt.BytemanHelper
+    AT ENTRY
+    IF TRUE
+    DO traceCamelProducer($1, $0.mqttEndpoint)
+ENDRULE
+
+RULE mqtt trace camel-consumer
+    CLASS org.apache.camel.component.mqtt.MQTTConsumer
+    METHOD processExchange(org.apache.camel.Exchange)
+    HELPER org.apache.camel.example.mqtt.BytemanHelper
+    AT ENTRY
+    IF TRUE
+    DO traceCamelConsumer($1)
+ENDRULE
+
+RULE mqtt trace new connection
+    CLASS org.fusesource.mqtt.client.CallbackConnection
+    METHOD <init>(org.fusesource.mqtt.client.MQTT)
+    HELPER org.apache.camel.example.mqtt.BytemanHelper
+    AT EXIT
+    IF TRUE
+    DO traceNewConnection($0.queue)
+ENDRULE
+
+RULE mqtt trace start endpoint
+    CLASS org.apache.camel.component.mqtt.MQTTEndpoint
+    METHOD doStart()
+    HELPER org.apache.camel.example.mqtt.BytemanHelper
+    AT EXIT
+    IF TRUE
+    DO traceStartEndpoint($0.connection)
+ENDRULE

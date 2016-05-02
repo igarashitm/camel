@@ -46,14 +46,14 @@
             <artifactId>dozer</artifactId>
         </dependency>
         <dependency>
-          <groupId>javax.el</groupId>
-          <artifactId>javax.el-api</artifactId>
-          <version>${javax.el-api-version}</version>
+            <groupId>javax.el</groupId>
+            <artifactId>javax.el-api</artifactId>
+            <version>${javax.el-api-version}</version>
         </dependency>
         <dependency>
-          <groupId>org.glassfish.web</groupId>
-          <artifactId>javax.el</artifactId>
-          <version>${javax.el-version}</version>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>javax.el</artifactId>
+            <version>${javax.el-version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -61,25 +61,30 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-          <scope>test</scope>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>test</scope>
         </dependency>
-	    <dependency>
-	      <groupId>org.apache.camel</groupId>
-	      <artifactId>camel-test-spring</artifactId>
-	      <scope>test</scope>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.camel</groupId>
-	      <artifactId>camel-jaxb</artifactId>
-	      <scope>test</scope>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.camel</groupId>
-	      <artifactId>camel-jackson</artifactId>
-	      <scope>test</scope>
-	    </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-test-blueprint</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-test-spring</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-jaxb</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-jackson</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

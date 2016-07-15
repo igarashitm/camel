@@ -33,6 +33,7 @@ All examples have been sort by type/category
 * [camel-example-etl](camel-example-etl/README.md)
 * [camel-example-loadbalancing](camel-example-loadbalancing/README.md)
 * [camel-example-hystrix](camel-example-hystrix/README.md)
+* [camel-example-transformer](camel-example-transformer/README.md)
 
 ##### Tutorials
 

@@ -45,6 +45,7 @@ import org.apache.camel.TypeConversionException;
 import org.apache.camel.TypeConverter;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.impl.MessageSupport;
+import org.apache.camel.spi.Contract;
 import org.apache.camel.spi.Synchronization;
 import org.apache.camel.spi.UnitOfWork;
 

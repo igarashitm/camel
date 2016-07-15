@@ -32,6 +32,9 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.namespace.QName;
 
@@ -57,6 +60,7 @@ import org.apache.camel.model.language.LanguageExpression;
 import org.apache.camel.model.language.SimpleExpression;
 import org.apache.camel.model.remote.ServiceCallDefinition;
 import org.apache.camel.model.rest.RestDefinition;
+import org.apache.camel.processor.ContractProcessor;
 import org.apache.camel.processor.InterceptEndpointProcessor;
 import org.apache.camel.processor.Pipeline;
 import org.apache.camel.processor.aggregate.AggregationStrategy;
@@ -65,6 +69,7 @@ import org.apache.camel.processor.interceptor.Delayer;
 import org.apache.camel.processor.interceptor.HandleFault;
 import org.apache.camel.processor.interceptor.StreamCaching;
 import org.apache.camel.processor.loadbalancer.LoadBalancer;
+import org.apache.camel.spi.Contract;
 import org.apache.camel.spi.DataFormat;
 import org.apache.camel.spi.IdAware;
 import org.apache.camel.spi.IdempotentRepository;
@@ -81,7 +86,7 @@ import org.slf4j.LoggerFactory;
  * @version 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-public abstract class ProcessorDefinition<Type extends ProcessorDefinition<Type>> extends OptionalIdentifiedDefinition<Type> implements Block, OtherAttributesAware {
+public abstract class ProcessorDefinition<Type extends ProcessorDefinition<Type>> extends OptionalIdentifiedDefinition<Type> implements Block, OtherAttributesAware, ContractAwareDefinition<Type> {
     @XmlTransient
     private static final AtomicInteger COUNTER = new AtomicInteger();
     @XmlTransient
@@ -99,6 +104,17 @@ public abstract class ProcessorDefinition<Type extends ProcessorDefinition<Type>
     private Map<QName, Object> otherAttributes;
     @XmlTransient
     private final int index;
+    @XmlElementRef(required = false, name = "inputType")
+    private InputTypeDefinition inputTypeDefinition;
+    @XmlElementRef(required = false, name = "outputType")
+    private OutputTypeDefinition outputTypeDefinition;
+    @XmlElementRef(required = false, name = "contract")
+    private ContractDefinition contractDefinition;
+    @XmlTransient
+    private Contract contract;
+    @XmlTransient
+    private List<ContractAwareDefinition> scopedContractAware = new ArrayList<ContractAwareDefinition>();
+    
 
     protected ProcessorDefinition() {
         // every time we create a definition we should inc the COUNTER counter
@@ -195,6 +211,10 @@ public abstract class ProcessorDefinition<Type extends ProcessorDefinition<Type>
 
     @Override
     public void addOutput(ProcessorDefinition<?> output) {
+        if (output instanceof ContractAwareDefinition) {
+            setScopedContractAware((ContractAwareDefinition)output);
+        }
+
         if (!blocks.isEmpty()) {
             // let the Block deal with the output
             Block block = blocks.getLast();
@@ -550,6 +570,9 @@ public abstract class ProcessorDefinition<Type extends ProcessorDefinition<Type>
             // no processor to make
             return null;
         }
+        if (getContract() != null) {
+            processor = new ContractProcessor(processor, getContract());
+        }
         return wrapProcessor(routeContext, processor);
     }
 
@@ -558,6 +581,15 @@ public abstract class ProcessorDefinition<Type extends ProcessorDefinition<Type>
      */
     protected void preCreateProcessor() {
         // noop
+    }
+
+    protected void setScopedContractAware(List<ContractAwareDefinition> contractAware) {
+        scopedContractAware = contractAware;
+    }
+
+    protected void setScopedContractAware(ContractAwareDefinition contractAware) {
+        scopedContractAware.clear();
+        scopedContractAware.add(contractAware);
     }
 
     /**
@@ -3825,6 +3857,79 @@ public abstract class ProcessorDefinition<Type extends ProcessorDefinition<Type>
         return answer;
     }
 
+    /**
+     * Declare an input type.
+     * @param name input type URN
+     * @return the builder
+     */
+    @SuppressWarnings("unchecked")
+    public Type inputType(String name) {
+        InputTypeDefinition def = new InputTypeDefinition();
+        def.setUrn(name);
+        for (ContractAwareDefinition contractAware : scopedContractAware) {
+            contractAware.setInputTypeDefinition(def);
+        }
+        return (Type) this;
+    }
+
+    /**
+     * Declare an input type with Java class.
+     * @param clazz Class object of the input type
+     * @return the builder
+     */
+    @SuppressWarnings("unchecked")
+    public Type inputType(Class clazz) {
+        InputTypeDefinition def = new InputTypeDefinition();
+        def.setUrn("java:" + clazz.getName());
+        for (ContractAwareDefinition contractAware : scopedContractAware) {
+            contractAware.setInputTypeDefinition(def);
+        }
+        return (Type) this;
+    }
+
+    /**
+     * Declare an output type.
+     * @param name output type URN
+     * @return the builder
+     */
+    @SuppressWarnings("unchecked")
+    public Type outputType(String name) {
+        OutputTypeDefinition def = new OutputTypeDefinition();
+        def.setUrn(name);
+        for (ContractAwareDefinition contractAware : scopedContractAware) {
+            contractAware.setOutputTypeDefinition(def);
+        }
+        return (Type) this;
+    }
+
+    /**
+     * Declare an output type.
+     * @param clazz Class object of the output type
+     * @return the builder
+     */
+    @SuppressWarnings("unchecked")
+    public Type outputType(Class clazz) {
+        OutputTypeDefinition def = new OutputTypeDefinition();
+        def.setUrn("java:" + clazz.getName());
+        for (ContractAwareDefinition contractAware : scopedContractAware) {
+            contractAware.setOutputTypeDefinition(def);
+        }
+        return (Type) this;
+    }
+
+    /**
+     * Declare input/output type with Contract object.
+     * @param contract Contract object
+     * @return the builder
+     */
+    @SuppressWarnings("unchecked")
+    public Type contract(Contract contract) {
+        for (ContractAwareDefinition contractAware : scopedContractAware) {
+            contractAware.setContract(contract);
+        }
+        return (Type) this;
+    }
+
     // DataFormat support
     // -------------------------------------------------------------------------
 
@@ -4002,5 +4107,63 @@ public abstract class ProcessorDefinition<Type extends ProcessorDefinition<Type>
     public String getLabel() {
         return "";
     }
-    
+
+    @Override
+    public void setInputTypeDefinition(InputTypeDefinition inputType) {
+        this.inputTypeDefinition = inputType;
+    }
+
+    @Override
+    public InputTypeDefinition getInputTypeDefinition() {
+        return this.inputTypeDefinition;
+    }
+
+    @Override
+    public void setOutputTypeDefinition(OutputTypeDefinition outputType) {
+        this.outputTypeDefinition = outputType;
+    }
+
+    @Override
+    public OutputTypeDefinition getOutputTypeDefinition() {
+        return this.outputTypeDefinition;
+    }
+
+    @Override
+    public void setContractDefinition(ContractDefinition contractDef) {
+        this.contractDefinition = contractDef;
+    }
+
+    @Override
+    public ContractDefinition getContractDefinition() {
+        return this.contractDefinition;
+    }
+
+    @Override
+    public void setContract(Contract contract) {
+        this.contract = contract;
+    }
+
+    @Override
+    public Contract getContract() {
+        if (contract != null) {
+            return contract;
+        }
+        if (contractDefinition != null) {
+            contract = new Contract();
+            contract.setInputType(contractDefinition.getInput());
+            contract.setOutputType(contractDefinition.getOutput());
+            return contract;
+        } else if (inputTypeDefinition != null || outputTypeDefinition != null) {
+            contract = new Contract();
+            if (inputTypeDefinition != null) {
+                contract.setInputType(inputTypeDefinition.getUrn());
+            }
+            if (outputTypeDefinition != null) {
+                contract.setOutputType(outputTypeDefinition.getUrn());
+            }
+            return contract;
+        }
+        return null;
+    }
+
 }

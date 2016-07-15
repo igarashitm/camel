@@ -34,7 +34,11 @@ import org.apache.camel.Producer;
 import org.apache.camel.ProducerCallback;
 import org.apache.camel.ServicePoolAware;
 import org.apache.camel.processor.CamelInternalProcessor;
+import org.apache.camel.processor.ContractProcessor;
 import org.apache.camel.processor.Pipeline;
+import org.apache.camel.spi.Contract;
+import org.apache.camel.spi.ContractAware;
+import org.apache.camel.spi.DataType;
 import org.apache.camel.spi.EndpointUtilizationStatistics;
 import org.apache.camel.spi.ServicePool;
 import org.apache.camel.support.ServiceSupport;
@@ -480,7 +484,9 @@ public class ProducerCache extends ServiceSupport {
             if (eventNotifierEnabled) {
                 callback = new EventNotifierCallback(callback, exchange, endpoint);
             }
-            CamelInternalProcessor internal = prepareInternalProcessor(producer, resultProcessor);
+            Contract contract = endpoint instanceof ContractAware ? ((ContractAware)endpoint).getContract() : null;
+            CamelInternalProcessor internal = prepareInternalProcessor(producer, resultProcessor, contract);
+            populateInputType(exchange, contract);
 
             return internal.process(exchange, callback);
         } catch (Throwable e) {
@@ -525,7 +531,9 @@ public class ProducerCache extends ServiceSupport {
                         EventHelper.notifyExchangeSending(exchange.getContext(), exchange, endpoint);
                     }
 
-                    CamelInternalProcessor internal = prepareInternalProcessor(producer, resultProcessor);
+                    Contract contract = endpoint instanceof ContractAware ? ((ContractAware)endpoint).getContract() : null;
+                    CamelInternalProcessor internal = prepareInternalProcessor(producer, resultProcessor, contract);
+                    populateInputType(exchange, contract);
                     internal.process(exchange);
                 } catch (Throwable e) {
                     // ensure exceptions is caught and set on the exchange
@@ -542,7 +550,14 @@ public class ProducerCache extends ServiceSupport {
         });
     }
 
-    protected CamelInternalProcessor prepareInternalProcessor(Producer producer, Processor resultProcessor) {
+    protected void populateInputType(Exchange exchange, Contract consumerContract) {
+        if (exchange.getProperty(Exchange.INPUT_TYPE, DataType.class) == null
+            && consumerContract != null && consumerContract.getInputType() != null) {
+            exchange.setProperty(Exchange.INPUT_TYPE, consumerContract.getInputType());
+        }
+    }
+
+    protected CamelInternalProcessor prepareInternalProcessor(Producer producer, Processor resultProcessor, Contract contract) {
         // if we have a result processor then wrap in pipeline to execute both of them in sequence
         Processor target;
         if (resultProcessor != null) {
@@ -552,6 +567,11 @@ public class ProducerCache extends ServiceSupport {
             target = Pipeline.newInstance(getCamelContext(), processors);
         } else {
             target = producer;
+        }
+
+        // wrap with ContractProcessor if the contract is declared
+        if (contract != null) {
+            target = new ContractProcessor(target, contract);
         }
 
         // wrap in unit of work

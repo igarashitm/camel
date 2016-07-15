@@ -19,10 +19,16 @@ package org.apache.camel.model;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.camel.Endpoint;
+import org.apache.camel.Expression;
+import org.apache.camel.model.language.ExpressionDefinition;
+import org.apache.camel.spi.Contract;
+import org.apache.camel.spi.ContractAware;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.RouteContext;
 import org.apache.camel.util.ObjectHelper;
@@ -35,7 +41,7 @@ import org.apache.camel.util.ObjectHelper;
 @Metadata(label = "eip,endpoint,routing")
 @XmlRootElement(name = "from")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class FromDefinition extends OptionalIdentifiedDefinition<FromDefinition> implements EndpointRequiredDefinition {
+public class FromDefinition extends OptionalIdentifiedDefinition<FromDefinition> implements EndpointRequiredDefinition, ContractAwareDefinition<FromDefinition> {
     @XmlAttribute @Metadata(required = "true")
     private String uri;
     @XmlAttribute
@@ -43,6 +49,15 @@ public class FromDefinition extends OptionalIdentifiedDefinition<FromDefinition>
     private String ref;
     @XmlTransient
     private Endpoint endpoint;
+    @XmlTransient
+    private Contract contract;
+    @XmlElementRef(required = false, name = "inputType")
+    private InputTypeDefinition inputTypeDefinition;
+    @XmlElementRef(required = false, name = "outputType")
+    private OutputTypeDefinition outputTypeDefinition;
+    @XmlElementRef(required = false, name = "contract")
+    private ContractDefinition contractDefinition;
+    
 
     public FromDefinition() {
     }
@@ -66,7 +81,11 @@ public class FromDefinition extends OptionalIdentifiedDefinition<FromDefinition>
 
     public Endpoint resolveEndpoint(RouteContext context) {
         if (endpoint == null) {
-            return context.resolveEndpoint(getUri(), getRef());
+            Endpoint endpoint = context.resolveEndpoint(getUri(), getRef());
+            if (endpoint instanceof ContractAware) {
+                ((ContractAware)endpoint).setContract(getContract());
+            }
+            return endpoint;
         } else {
             return endpoint;
         }
@@ -135,6 +154,9 @@ public class FromDefinition extends OptionalIdentifiedDefinition<FromDefinition>
         if (endpoint != null) {
             this.uri = endpoint.getEndpointUri();
         }
+        if (getContract() != null && endpoint instanceof ContractAware) {
+            ((ContractAware)endpoint).setContract(getContract());
+        }
     }
 
     /**
@@ -147,6 +169,64 @@ public class FromDefinition extends OptionalIdentifiedDefinition<FromDefinition>
             return endpoint.getEndpointUri();
         }
         return ref;
+    }
+
+    @Override
+    public void setInputTypeDefinition(InputTypeDefinition inputType) {
+        this.inputTypeDefinition = inputType;
+    }
+
+    @Override
+    public InputTypeDefinition getInputTypeDefinition() {
+        return this.inputTypeDefinition;
+    }
+
+    @Override
+    public void setOutputTypeDefinition(OutputTypeDefinition outputType) {
+        this.outputTypeDefinition = outputType;
+    }
+
+    @Override
+    public OutputTypeDefinition getOutputTypeDefinition() {
+        return this.outputTypeDefinition;
+    }
+
+    @Override
+    public  void setContractDefinition(ContractDefinition contractDef) {
+        this.contractDefinition = contractDef;
+    }
+
+    @Override
+    public ContractDefinition getContractDefinition() {
+        return this.contractDefinition;
+    }
+
+    @Override
+    public void setContract(Contract contract) {
+        this.contract = contract;
+    }
+
+    @Override
+    public Contract getContract() {
+        if (contract != null) {
+            return contract;
+        }
+        if (contractDefinition != null) {
+            contract = new Contract();
+            contract.setInputType(contractDefinition.getInput());
+            contract.setOutputType(contractDefinition.getOutput());
+            return contract;
+        } else if (inputTypeDefinition != null || outputTypeDefinition != null) {
+            contract = new Contract();
+            if (inputTypeDefinition != null) {
+                contract.setInputType(inputTypeDefinition.getUrn());
+            }
+            if (outputTypeDefinition != null) {
+                contract.setOutputType(outputTypeDefinition.getUrn());
+            }
+            return contract;
+        }
+        return null;
     }
 
     // Implementation methods

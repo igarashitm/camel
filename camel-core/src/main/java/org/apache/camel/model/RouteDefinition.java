@@ -310,7 +310,9 @@ public class RouteDefinition extends ProcessorDefinition<RouteDefinition> {
      * @return the builder
      */
     public RouteDefinition from(String uri) {
-        getInputs().add(new FromDefinition(uri));
+        FromDefinition from = new FromDefinition(uri);
+        getInputs().add(from);
+        setScopedContractAware(from);
         return this;
     }
 
@@ -321,7 +323,9 @@ public class RouteDefinition extends ProcessorDefinition<RouteDefinition> {
      * @return the builder
      */
     public RouteDefinition from(Endpoint endpoint) {
-        getInputs().add(new FromDefinition(endpoint));
+        FromDefinition from = new FromDefinition(endpoint);
+        getInputs().add(from);
+        setScopedContractAware(from);
         return this;
     }
 
@@ -332,9 +336,13 @@ public class RouteDefinition extends ProcessorDefinition<RouteDefinition> {
      * @return the builder
      */
     public RouteDefinition from(String... uris) {
+        List<ContractAwareDefinition> froms = new ArrayList<ContractAwareDefinition>();
         for (String uri : uris) {
-            getInputs().add(new FromDefinition(uri));
+            FromDefinition from = new FromDefinition(uri);
+            getInputs().add(from);
+            froms.add(from);
         }
+        setScopedContractAware(froms);
         return this;
     }
 
@@ -345,9 +353,13 @@ public class RouteDefinition extends ProcessorDefinition<RouteDefinition> {
      * @return the builder
      */
     public RouteDefinition from(Endpoint... endpoints) {
+        List<ContractAwareDefinition> froms = new ArrayList<ContractAwareDefinition>();
         for (Endpoint endpoint : endpoints) {
-            getInputs().add(new FromDefinition(endpoint));
+            FromDefinition from = new FromDefinition(endpoint);
+            getInputs().add(from);
+            froms.add(from);
         }
+        setScopedContractAware(froms);
         return this;
     }
 

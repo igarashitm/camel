@@ -21,6 +21,7 @@ CatchDefinition
 ChoiceDefinition
 ConvertBodyDefinition
 ContextScanDefinition
+ContractDefinition
 DataFormatDefinition
 DelayDefinition
 DescriptionDefinition
@@ -35,6 +36,7 @@ HystrixConfigurationDefinition
 IdempotentConsumerDefinition
 InOnlyDefinition
 InOutDefinition
+InputTypeDefinition
 InterceptDefinition
 InterceptFromDefinition
 InterceptSendToEndpointDefinition
@@ -51,6 +53,7 @@ OnFallbackDefinition
 OptimisticLockRetryPolicyDefinition
 OptionalIdentifiedDefinition
 OtherwiseDefinition
+OutputTypeDefinition
 PackageScanDefinition
 PipelineDefinition
 PolicyDefinition

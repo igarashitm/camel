@@ -32,12 +32,16 @@ import org.apache.camel.ServicePoolAware;
 import org.apache.camel.Traceable;
 import org.apache.camel.impl.InterceptSendToEndpoint;
 import org.apache.camel.impl.ProducerCache;
+import org.apache.camel.spi.Contract;
+import org.apache.camel.spi.ContractAware;
+import org.apache.camel.spi.DataType;
 import org.apache.camel.spi.IdAware;
 import org.apache.camel.support.ServiceSupport;
 import org.apache.camel.util.AsyncProcessorConverterHelper;
 import org.apache.camel.util.AsyncProcessorHelper;
 import org.apache.camel.util.EndpointHelper;
 import org.apache.camel.util.EventHelper;
+import org.apache.camel.util.ExchangeHelper;
 import org.apache.camel.util.ObjectHelper;
 import org.apache.camel.util.ServiceHelper;
 import org.apache.camel.util.StopWatch;
@@ -60,6 +64,8 @@ public class SendProcessor extends ServiceSupport implements AsyncProcessor, Tra
     protected Endpoint destination;
     protected ExchangePattern destinationExchangePattern;
     protected String id;
+    protected Contract producerContract;
+    protected DataType defaultOutputType;
     protected volatile long counter;
 
     public SendProcessor(Endpoint destination) {
@@ -112,6 +118,10 @@ public class SendProcessor extends ServiceSupport implements AsyncProcessor, Tra
         return destination;
     }
 
+    public void setProducerContract(Contract contract) {
+        this.producerContract = contract;
+    }
+
     public void process(final Exchange exchange) throws Exception {
         AsyncProcessorHelper.process(this, exchange);
     }
@@ -148,6 +158,8 @@ public class SendProcessor extends ServiceSupport implements AsyncProcessor, Tra
                         try {
                             // restore previous MEP
                             target.setPattern(existingPattern);
+                            // set output type if needed
+                            populateOutputType(exchange);
                             // emit event that the exchange was sent to the endpoint
                             long timeTaken = watch.stop();
                             EventHelper.notifyExchangeSent(target.getContext(), target, destination, timeTaken);
@@ -174,6 +186,8 @@ public class SendProcessor extends ServiceSupport implements AsyncProcessor, Tra
                     public void done(boolean doneSync) {
                         // restore previous MEP
                         target.setPattern(existingPattern);
+                        // set output type if needed
+                        populateOutputType(exchange);
                         // signal we are done
                         callback.done(doneSync);
                     }
@@ -182,6 +196,12 @@ public class SendProcessor extends ServiceSupport implements AsyncProcessor, Tra
         });
     }
     
+    protected void populateOutputType(Exchange exchange) {
+        if (exchange.getProperty(Exchange.OUTPUT_TYPE, DataType.class) == null && defaultOutputType != null) {
+            exchange.setProperty(Exchange.OUTPUT_TYPE, defaultOutputType);
+        }
+    }
+
     public Endpoint getDestination() {
         return destination;
     }
@@ -234,6 +254,18 @@ public class SendProcessor extends ServiceSupport implements AsyncProcessor, Tra
         // warm up the producer by starting it so we can fail fast if there was a problem
         // however must start endpoint first
         ServiceHelper.startService(destination);
+
+        // determine default output type if it exists
+        if (destination instanceof ContractAware) {
+            Contract consumerContract = ((ContractAware)destination).getContract();
+            if (consumerContract != null) {
+                // use consumer contract if available
+                defaultOutputType = consumerContract.getOutputType();
+            }
+        } else if (producerContract != null) {
+            // producer contract for a fallback
+            defaultOutputType = producerContract.getOutputType();
+        }
 
         // this SendProcessor is used a lot in Camel (eg every .to in the route DSL) and therefore we
         // want to optimize for regular producers, by using the producer directly instead of the ProducerCache

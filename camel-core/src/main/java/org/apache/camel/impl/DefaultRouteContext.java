@@ -35,7 +35,10 @@ import org.apache.camel.model.FromDefinition;
 import org.apache.camel.model.ProcessorDefinition;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.processor.CamelInternalProcessor;
+import org.apache.camel.processor.ContractProcessor;
 import org.apache.camel.processor.Pipeline;
+import org.apache.camel.spi.Contract;
+import org.apache.camel.spi.ContractAware;
 import org.apache.camel.spi.InterceptStrategy;
 import org.apache.camel.spi.RouteContext;
 import org.apache.camel.spi.RoutePolicy;
@@ -159,6 +162,14 @@ public class DefaultRouteContext implements RouteContext {
 
             // force creating the route id so its known ahead of the route is started
             String routeId = route.idOrCreate(getCamelContext().getNodeIdFactory());
+
+            // wrap with ContractProcessor if the contract is declared on the endpoint
+            if (endpoint instanceof ContractAware) {
+                Contract contract = ((ContractAware)endpoint).getContract();
+                if (contract != null) {
+                    target = new ContractProcessor(target, contract);
+                }
+            }
 
             // and wrap it in a unit of work so the UoW is on the top, so the entire route will be in the same UoW
             CamelInternalProcessor internal = new CamelInternalProcessor(target);

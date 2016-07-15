@@ -29,6 +29,9 @@ import org.apache.camel.NoTypeConversionAvailableException;
 import org.apache.camel.Producer;
 import org.apache.camel.impl.EmptyProducerCache;
 import org.apache.camel.impl.ProducerCache;
+import org.apache.camel.spi.Contract;
+import org.apache.camel.spi.ContractAware;
+import org.apache.camel.spi.DataType;
 import org.apache.camel.spi.EndpointUtilizationStatistics;
 import org.apache.camel.spi.IdAware;
 import org.apache.camel.support.ServiceSupport;
@@ -50,6 +53,7 @@ public class SendDynamicProcessor extends ServiceSupport implements AsyncProcess
     protected final String uri;
     protected final Expression expression;
     protected ExchangePattern pattern;
+    protected Contract producerContract;
     protected ProducerCache producerCache;
     protected String id;
     protected boolean ignoreInvalidEndpoint;
@@ -125,12 +129,36 @@ public class SendDynamicProcessor extends ServiceSupport implements AsyncProcess
                     public void done(boolean doneSync) {
                         // restore previous MEP
                         target.setPattern(existingPattern);
+                        // set output type if declared
+                        populateOutputType(exchange, endpoint);
                         // signal we are done
                         callback.done(doneSync);
                     }
                 });
             }
         });
+    }
+
+    protected void populateOutputType(Exchange exchange, Endpoint endpoint) {
+        DataType outputType = exchange.getProperty(Exchange.OUTPUT_TYPE, DataType.class);
+        if (outputType != null) {
+            // producer would have set the output type
+            return;
+        }
+        if (endpoint instanceof ContractAware) {
+            Contract consumerContract = ((ContractAware)endpoint).getContract();
+            if (consumerContract != null && consumerContract.getOutputType() != null) {
+                // use consumer contract if available
+                outputType = consumerContract.getOutputType();
+            }
+        }
+        if (outputType == null && producerContract != null && producerContract.getOutputType() != null) {
+            // producer contract for a fallback
+            outputType = producerContract.getOutputType();
+        }
+        if (outputType != null) {
+            exchange.setProperty(Exchange.OUTPUT_TYPE, outputType);
+        }
     }
 
     protected static Endpoint resolveEndpoint(Exchange exchange, Object recipient) throws NoTypeConversionAvailableException {
@@ -207,6 +235,10 @@ public class SendDynamicProcessor extends ServiceSupport implements AsyncProcess
         this.pattern = pattern;
     }
 
+    public void setProducerContract(Contract contract) {
+        this.producerContract = contract;
+    }
+
     public boolean isIgnoreInvalidEndpoint() {
         return ignoreInvalidEndpoint;
     }
@@ -222,4 +254,5 @@ public class SendDynamicProcessor extends ServiceSupport implements AsyncProcess
     public void setCacheSize(int cacheSize) {
         this.cacheSize = cacheSize;
     }
+
 }

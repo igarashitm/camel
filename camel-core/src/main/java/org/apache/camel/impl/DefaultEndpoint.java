@@ -29,11 +29,15 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.PollingConsumer;
 import org.apache.camel.ResolveEndpointFailedException;
+import org.apache.camel.model.ContractAwareDefinition;
+import org.apache.camel.spi.Contract;
+import org.apache.camel.spi.ContractAware;
 import org.apache.camel.spi.ExceptionHandler;
 import org.apache.camel.spi.HasId;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.support.ServiceSupport;
 import org.apache.camel.util.EndpointHelper;
+import org.apache.camel.util.ExchangeHelper;
 import org.apache.camel.util.IntrospectionSupport;
 import org.apache.camel.util.ObjectHelper;
 import org.apache.camel.util.URISupport;
@@ -53,7 +57,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @version
  */
-public abstract class DefaultEndpoint extends ServiceSupport implements Endpoint, HasId, CamelContextAware {
+public abstract class DefaultEndpoint extends ServiceSupport implements Endpoint, HasId, CamelContextAware, ContractAware<DefaultEndpoint> {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultEndpoint.class);
     private final String id = EndpointHelper.createEndpointId();
@@ -87,6 +91,7 @@ public abstract class DefaultEndpoint extends ServiceSupport implements Endpoint
     private int pollingConsumerQueueSize = 1000;
     private boolean pollingConsumerBlockWhenFull = true;
     private long pollingConsumerBlockTimeout;
+    private Contract contract;
 
     /**
      * Constructs a fully-initialized DefaultEndpoint instance. This is the
@@ -257,7 +262,13 @@ public abstract class DefaultEndpoint extends ServiceSupport implements Endpoint
     }
 
     public Exchange createExchange(Exchange exchange) {
-        return exchange.copy();
+        Exchange newExchange = exchange.copy();
+        // assuming expected input type is sent. each concrete Endpoint
+        // should override this along the input type consumer would send.
+        if (getContract() != null && getContract().getInputType() != null) {
+            newExchange.setProperty(Exchange.INPUT_TYPE, getContract().getInputType());
+        }
+        return newExchange;
     }
 
     public Exchange createExchange() {
@@ -265,7 +276,13 @@ public abstract class DefaultEndpoint extends ServiceSupport implements Endpoint
     }
 
     public Exchange createExchange(ExchangePattern pattern) {
-        return new DefaultExchange(this, pattern);
+        Exchange exchange = new DefaultExchange(this, pattern);
+        // assuming expected input type is sent. each concrete Endpoint
+        // should override this along the input type consumer would send.
+        if (getContract() != null && getContract().getInputType() != null) {
+            exchange.setProperty(Exchange.INPUT_TYPE, getContract().getInputType());
+        }
+        return exchange;
     }
 
     /**
@@ -523,6 +540,21 @@ public abstract class DefaultEndpoint extends ServiceSupport implements Endpoint
 
     protected void configurePollingConsumer(PollingConsumer consumer) throws Exception {
         configureConsumer(consumer);
+    }
+
+    @Override
+    public DefaultEndpoint setContract(Contract contract) {
+        if (this.contract != null && !this.contract.equals(contract)) {
+            LOG.warn("Overriding contract on the endpoint '{}' - it may cause unexpected behavior. Old:'{}' New:'{}'",
+                     this, this.contract, contract);
+        }
+        this.contract = contract;
+        return this;
+    }
+
+    @Override
+    public Contract getContract() {
+        return this.contract;
     }
 
     @Override

@@ -72,6 +72,7 @@ public class ToDynamicDefinition extends NoOutputDefinition<ToDynamicDefinition>
         SendDynamicProcessor processor = new SendDynamicProcessor(uri, exp);
         processor.setCamelContext(routeContext.getCamelContext());
         processor.setPattern(pattern);
+        processor.setProducerContract(getContract());
         if (cacheSize != null) {
             processor.setCacheSize(cacheSize);
         }

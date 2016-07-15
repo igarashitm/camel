@@ -25,6 +25,7 @@ import org.apache.camel.Endpoint;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.Processor;
 import org.apache.camel.processor.SendProcessor;
+import org.apache.camel.spi.ContractAware;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.RouteContext;
 import org.apache.camel.util.ObjectHelper;
@@ -54,7 +55,9 @@ public abstract class SendDefinition<Type extends ProcessorDefinition<Type>> ext
     @Override
     public Processor createProcessor(RouteContext routeContext) throws Exception {
         Endpoint endpoint = resolveEndpoint(routeContext);
-        return new SendProcessor(endpoint, getPattern());
+        SendProcessor answer = new SendProcessor(endpoint, getPattern());
+        answer.setProducerContract(getContract());
+        return answer;
     }
 
     public Endpoint resolveEndpoint(RouteContext context) {

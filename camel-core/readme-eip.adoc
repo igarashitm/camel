@@ -24,6 +24,9 @@ Enterprise Integration Patterns
 | link:src/main/docs/eips/consulConfiguration-eip.adoc[Consul Configuration] +
 `<consulConfiguration>` | Consul remote service call configuration
 
+| link:src/main/docs/eips/contract-eip.adoc[Contract] +
+`<contract>` | Declare input and/or output data type contract on the endpoint or processor
+
 | link:src/main/docs/eips/convertBodyTo-eip.adoc[Convert Body To] +
 `<convertBodyTo>` | Converts the message body to another type
 
@@ -69,6 +72,9 @@ Enterprise Integration Patterns
 | link:src/main/docs/eips/inOut-eip.adoc[In Out] +
 `<inOut>` | Marks the exchange pattern for the route to request/reply
 
+| link:src/main/docs/eips/inputType-eip.adoc[Input Type] +
+`<inputType>` | Declare an input type on the endpoint or processor
+
 | link:src/main/docs/eips/kubernetesConfiguration-eip.adoc[Kubernetes Configuration] +
 `<kubernetesConfiguration>` | Kubernetes remote service call configuration
 
@@ -89,6 +95,9 @@ Enterprise Integration Patterns
 
 | link:src/main/docs/eips/otherwise-eip.adoc[Otherwise] +
 `<otherwise>` | Route to be executed when all other choices evaluate to false
+
+| link:src/main/docs/eips/outputType-eip.adoc[Output Type] +
+`<outputType>` | Declare an output type on the endpoint or processor
 
 | link:src/main/docs/eips/pipeline-eip.adoc[Pipeline] +
 `<pipeline>` | Routes the message to a sequence of processors.

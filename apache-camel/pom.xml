@@ -690,6 +690,10 @@
     </dependency>
     <dependency>
       <groupId>org.apache.camel</groupId>
+      <artifactId>camel-okhttp</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
       <artifactId>camel-olingo2-api</artifactId>
     </dependency>
     <dependency>
@@ -1810,6 +1814,11 @@
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-ognl-starter</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-okhttp-starter</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

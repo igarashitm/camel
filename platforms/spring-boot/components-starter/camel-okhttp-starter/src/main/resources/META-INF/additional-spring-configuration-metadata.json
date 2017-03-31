@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "defaultValue": true,
+      "name": "camel.component.okhttp.enabled",
+      "description": "Enable okhttp component",
+      "type": "java.lang.Boolean"
+    }
+  ]
+}

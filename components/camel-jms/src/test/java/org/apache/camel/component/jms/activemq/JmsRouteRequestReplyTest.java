@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms;
+package org.apache.camel.component.jms.activemq;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.jms.ConnectionFactory;
 
 import org.apache.activemq.camel.component.ActiveMQComponent;
@@ -37,17 +38,19 @@ import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.JmsComponent;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 
-/**
- * @version 
- */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRouteRequestReplyTest extends CamelTestSupport {
 
     protected static final String REPLY_TO_DESTINATION_SELECTOR_NAME = "camelProducer";
@@ -66,28 +69,32 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
     protected static int maxServerTasks = 1;
     protected static int maxCalls = 5;
     protected static AtomicBoolean inited = new AtomicBoolean(false);
-    protected static Map<String, ContextBuilder> contextBuilders = new HashMap<String, ContextBuilder>();
-    protected static Map<String, RouteBuilder> routeBuilders = new HashMap<String, RouteBuilder>();
+    protected static Map<String, ContextBuilder> contextBuilders = new HashMap<>();
+    protected static Map<String, RouteBuilder> routeBuilders = new HashMap<>();
 
     private interface ContextBuilder {
         CamelContext buildContext(CamelContext context) throws Exception;
     }
 
     public static class SingleNodeDeadEndRouteBuilder extends RouteBuilder {
+        @Override
         public void configure() throws Exception {
             from(endpointUriA)
                 // We are not expect the response here
                 .setExchangePattern(ExchangePattern.InOnly).process(new Processor() {
+                    @Override
                     public void process(Exchange e) {
                         // do nothing
                     }
                 });
         }
-    };
+    }
 
     public static class SingleNodeRouteBuilder extends RouteBuilder {
+        @Override
         public void configure() throws Exception {
             from(endpointUriA).process(new Processor() {
+                @Override
                 public void process(Exchange e) {
                     String request = e.getIn().getBody(String.class);
                     e.getOut().setBody(expectedReply + request.substring(request.indexOf('-')));
@@ -97,9 +104,11 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
     };
 
     public static class MultiNodeRouteBuilder extends RouteBuilder {
+        @Override
         public void configure() throws Exception {
             from(endpointUriA).to(endpointUriB);
             from(endpointUriB).process(new Processor() {
+                @Override
                 public void process(Exchange e) {
                     String request = e.getIn().getBody(String.class);
                     e.getOut().setBody(expectedReply + request.substring(request.indexOf('-')));
@@ -109,9 +118,11 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
     };
 
     public static class MultiNodeReplyToRouteBuilder extends RouteBuilder {
+        @Override
         public void configure() throws Exception {
             from(endpointUriA).to(endpointReplyToUriB);
             from(endpointUriB).process(new Processor() {
+                @Override
                 public void process(Exchange e) {
                     Message in = e.getIn();
                     Message out = e.getOut();
@@ -122,21 +133,24 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
                 }
             });
         }
-    };
+    }
 
     public static class MultiNodeDiffCompRouteBuilder extends RouteBuilder {
+        @Override
         public void configure() throws Exception {
             from(endpointUriA).to(endpointUriB1);
             from(endpointUriB1).process(new Processor() {
+                @Override
                 public void process(Exchange e) {
                     String request = e.getIn().getBody(String.class);
                     e.getOut().setBody(expectedReply + request.substring(request.indexOf('-')));
                 }
             });
         }
-    };
+    }
 
     public static class ContextBuilderMessageID implements ContextBuilder {
+        @Override
         public CamelContext buildContext(CamelContext context) throws Exception {
             ConnectionFactory connectionFactory =
                 CamelJmsTestHelper.createConnectionFactory();
@@ -146,7 +160,7 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
             context.addComponent(componentName, jmsComponent);
             return context;
         }
-    };
+    }
 
     protected static void init() {
         if (inited.compareAndSet(false, true)) {
@@ -154,6 +168,7 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
             ContextBuilder contextBuilderMessageID = new ContextBuilderMessageID();
 
             ContextBuilder contextBuilderCorrelationID = new ContextBuilder() {
+                @Override
                 public CamelContext buildContext(CamelContext context) throws Exception {
                     ConnectionFactory connectionFactory =
                         CamelJmsTestHelper.createConnectionFactory();
@@ -167,6 +182,7 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
             };
 
             ContextBuilder contextBuilderMessageIDNamedReplyToSelector = new ContextBuilder() {
+                @Override
                 public CamelContext buildContext(CamelContext context) throws Exception {
                     ConnectionFactory connectionFactory =
                         CamelJmsTestHelper.createConnectionFactory();
@@ -181,6 +197,7 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
             };
 
             ContextBuilder contextBuilderCorrelationIDNamedReplyToSelector = new ContextBuilder() {
+                @Override
                 public CamelContext buildContext(CamelContext context) throws Exception {
                     ConnectionFactory connectionFactory =
                         CamelJmsTestHelper.createConnectionFactory();
@@ -196,6 +213,7 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
 
 
             ContextBuilder contextBuilderCorrelationIDDiffComp = new ContextBuilder() {
+                @Override
                 public CamelContext buildContext(CamelContext context) throws Exception {
                     ConnectionFactory connectionFactory =
                         CamelJmsTestHelper.createConnectionFactory();
@@ -214,6 +232,7 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
             };
 
             ContextBuilder contextBuilderMessageIDDiffComp = new ContextBuilder() {
+                @Override
                 public CamelContext buildContext(CamelContext context) throws Exception {
                     ConnectionFactory connectionFactory =
                         CamelJmsTestHelper.createConnectionFactory();
@@ -293,6 +312,7 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
             this.fromUri = fromUri;
         }
 
+        @Override
         public Task call() throws Exception {
             for (int i = 0; i < maxCalls; i++) {
                 int callId = counter.incrementAndGet();
@@ -317,6 +337,7 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
     }
 
     @Before
+    @Override
     public void setUp() throws Exception {
         init();
         super.setUp();
@@ -473,12 +494,21 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
         context.getExecutorServiceManager().shutdownNow(executor);
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         return contextBuilders.get(getTestMethodName()).buildContext(camelContext);
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return routeBuilders.get(getTestMethodName());
+    }
+
+    @Override
+    public String getTestMethodName() {
+        final String testMethodName = super.getTestMethodName();
+
+        return testMethodName.replaceAll(" \\[.*", "");
     }
 }

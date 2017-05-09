@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms;
+package org.apache.camel.component.jms.activemq;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Message;
@@ -25,15 +25,16 @@ import org.apache.activemq.command.ActiveMQMessage;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.JmsComponent;
+import org.apache.camel.component.jms.JmsMessage;
+import org.apache.camel.component.jms.MessageCreatedStrategy;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- * @version 
- */
 public class ActiveMQOriginalDestinationTest extends CamelTestSupport {
 
     protected String componentName = "activemq";
@@ -61,10 +62,11 @@ public class ActiveMQOriginalDestinationTest extends CamelTestSupport {
         assertEquals("Queue", original.getDestinationTypeAsString());
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
+        ConnectionFactory connectionFactory = CamelJmsTestHelper.ACTIVEMQ.createConnectionFactory();
         camelContext.addComponent(componentName, jmsComponentAutoAcknowledge(connectionFactory));
 
         JmsComponent jms = camelContext.getComponent(componentName, JmsComponent.class);

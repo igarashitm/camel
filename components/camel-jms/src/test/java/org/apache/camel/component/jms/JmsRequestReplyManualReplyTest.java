@@ -18,6 +18,7 @@ package org.apache.camel.component.jms;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
@@ -25,7 +26,6 @@ import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.camel.Body;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Consume;
@@ -69,10 +69,10 @@ public class JmsRequestReplyManualReplyTest extends CamelTestSupport {
         context.start();
 
         // send using pure JMS API to set a custom JMSReplyTo
-        jms.send(new ActiveMQQueue("foo"), new MessageCreator() {
+        jms.send(CamelJmsTestHelper.createQueue("foo"), new MessageCreator() {
             public Message createMessage(Session session) throws JMSException {
                 TextMessage msg = session.createTextMessage("Hello World");
-                msg.setJMSReplyTo(new ActiveMQQueue("bar"));
+                msg.setJMSReplyTo(CamelJmsTestHelper.createQueue("bar"));
                 return msg;
             }
         });

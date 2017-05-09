@@ -19,11 +19,11 @@ package org.apache.camel.component.jms.issues;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.component.jms.JmsConstants;
 import org.apache.camel.test.spring.CamelSpringTestSupport;
-import org.apache.xbean.spring.context.ClassPathXmlApplicationContext;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.AbstractXmlApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @version 

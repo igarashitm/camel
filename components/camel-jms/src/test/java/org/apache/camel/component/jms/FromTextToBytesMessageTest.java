@@ -23,12 +23,11 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- *
- */
+@RunWith(MultipleJmsImplementations.class)
 public class FromTextToBytesMessageTest extends CamelTestSupport {
 
     @Test
@@ -73,6 +72,7 @@ public class FromTextToBytesMessageTest extends CamelTestSupport {
         assertIsInstanceOf(javax.jms.TextMessage.class, msg);
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 

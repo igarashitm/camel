@@ -25,17 +25,18 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test for using JMS as DLQ
- *
- * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsDeadLetterQueueTest extends CamelTestSupport {
 
     protected String getUri() {
-        return "activemq:queue:dead";
+        return "jms:queue:dead";
     }
 
     @Test
@@ -61,11 +62,12 @@ public class JmsDeadLetterQueueTest extends CamelTestSupport {
         assertNull(mock.getReceivedExchanges().get(0).getProperty(Exchange.EXCEPTION_CAUGHT));
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -78,6 +80,7 @@ public class JmsDeadLetterQueueTest extends CamelTestSupport {
                 errorHandler(deadLetterChannel("seda:dead").disableRedelivery());
 
                 from("direct:start").process(new Processor() {
+                    @Override
                     public void process(Exchange exchange) throws Exception {
                         String body = exchange.getIn().getBody(String.class);
                         if ("Kabom".equals(body)) {

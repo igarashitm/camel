@@ -21,9 +21,6 @@ import org.apache.xbean.spring.context.ClassPathXmlApplicationContext;
 import org.junit.Test;
 import org.springframework.context.support.AbstractXmlApplicationContext;
 
-/**
- *
- */
 public class TwoEmbeddedActiveMQBrokersTest extends CamelSpringTestSupport {
 
     @Test
@@ -37,6 +34,7 @@ public class TwoEmbeddedActiveMQBrokersTest extends CamelSpringTestSupport {
         assertMockEndpointsSatisfied();
     }
 
+    @Override
     protected AbstractXmlApplicationContext createApplicationContext() {
         return new ClassPathXmlApplicationContext("classpath:org/apache/camel/component/jms/activemq/twoActiveMQBrokers.xml");
     }

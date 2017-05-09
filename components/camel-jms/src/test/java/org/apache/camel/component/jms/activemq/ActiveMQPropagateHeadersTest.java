@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms.issues;
+package org.apache.camel.component.jms.activemq;
 
 import java.util.Date;
 import java.util.List;
@@ -65,21 +65,25 @@ public class ActiveMQPropagateHeadersTest extends CamelTestSupport {
         assertEquals("ReplyTo", replyQueue.toString(), replyTo);
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         // START SNIPPET: example
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
+        ConnectionFactory connectionFactory = CamelJmsTestHelper.ACTIVEMQ.createConnectionFactory();
         camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
         // END SNIPPET: example
 
         return camelContext;
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
                 from("activemq:test.a").process(new Processor() {
+                    @Override
                     public void process(Exchange exchange) throws Exception {
                         // set the JMS headers
                         Message in = exchange.getIn();

@@ -27,11 +27,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test that we can do file over JMS to file.
  */
+@RunWith(MultipleJmsImplementations.class)
 public class FileRouteToJmsToFileTest extends CamelTestSupport {
 
     protected String componentName = "activemq";
@@ -54,6 +57,7 @@ public class FileRouteToJmsToFileTest extends CamelTestSupport {
         assertTrue("The file should exists", file.exists());
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
@@ -63,8 +67,10 @@ public class FileRouteToJmsToFileTest extends CamelTestSupport {
         return camelContext;
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
                 from("file://target/file2file/in").to("activemq:queue:hello");
 

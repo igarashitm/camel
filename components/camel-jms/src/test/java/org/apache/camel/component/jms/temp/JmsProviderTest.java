@@ -20,23 +20,25 @@ import javax.jms.TemporaryQueue;
 import javax.jms.TemporaryTopic;
 import javax.naming.Context;
 
-import org.apache.activemq.camel.component.ActiveMQComponent;
-import org.apache.activemq.command.ActiveMQTempQueue;
-import org.apache.activemq.command.ActiveMQTempTopic;
+import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.component.jms.JmsConfiguration;
 import org.apache.camel.component.jms.JmsEndpoint;
+import org.apache.camel.component.jms.JmsMock;
 import org.apache.camel.component.jms.JmsProviderMetadata;
 import org.apache.camel.test.junit4.CamelTestSupport;
+import org.junit.Rule;
 import org.junit.Test;
 
-/**
- * @version 
- */
 public class JmsProviderTest extends CamelTestSupport {
+
+    @Rule
+    public JmsMock mock = new JmsMock();
+
     @Test
     public void testTemporaryDestinationTypes() throws Exception {
-        JmsEndpoint endpoint = getMandatoryEndpoint("activemq:test.queue", JmsEndpoint.class);
+        JmsEndpoint endpoint = getMandatoryEndpoint("jms:test.queue", JmsEndpoint.class);
         JmsConfiguration configuration = endpoint.getConfiguration();
+
         JmsProviderMetadata providerMetadata = configuration.getProviderMetadata();
         assertNotNull("provider", providerMetadata);
 
@@ -49,14 +51,18 @@ public class JmsProviderTest extends CamelTestSupport {
         assertNotNull("queueType", queueType);
         assertNotNull("topicType", topicType);
 
-        assertEquals("queueType", ActiveMQTempQueue.class, queueType);
-        assertEquals("topicType", ActiveMQTempTopic.class, topicType);
+        assertTrue("queueType", TemporaryQueue.class.isAssignableFrom(queueType));
+        assertTrue("topicType", TemporaryTopic.class.isAssignableFrom(topicType));
     }
 
     @Override
     protected Context createJndiContext() throws Exception {
         Context context = super.createJndiContext();
-        context.bind("activemq", ActiveMQComponent.activeMQComponent("vm://localhost"));
+        JmsComponent jms = new JmsComponent();
+
+        jms.setConnectionFactory(mock.connectionFactory);
+
+        context.bind("jms", jms);
         return context;
     }
 }

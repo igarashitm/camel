@@ -19,18 +19,20 @@ package org.apache.camel.component.jms;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import org.apache.activemq.command.ActiveMQBlobMessage;
+import javax.jms.Message;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 
 public class JmsBindingTest {
 
     @Test
     public void testJmsBindingNoArgs() throws Exception {
         JmsBinding underTest = new JmsBinding();
-        assertNull(underTest.extractBodyFromJms(null, new ActiveMQBlobMessage()));
+        assertNull(underTest.extractBodyFromJms(null, mock(Message.class)));
     }
 
     @Test

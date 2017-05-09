@@ -16,8 +16,6 @@
  */
 package org.apache.camel.component.jms;
 
-import javax.jms.ConnectionFactory;
-
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -29,42 +27,40 @@ import org.junit.Test;
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 public class JmsSelectorOptionTest extends CamelTestSupport {
-    
-    protected String componentName = "activemq";
 
     @Test
     public void testJmsMessageWithSelector() throws Exception {
         MockEndpoint endpointA = getMockEndpoint("mock:a");
         MockEndpoint endpointB = getMockEndpoint("mock:b");
         MockEndpoint endpointC = getMockEndpoint("mock:c");
-        
+
         endpointA.expectedBodiesReceivedInAnyOrder("A blue car!", "A blue car, again!");
         endpointA.expectedHeaderReceived("color", "blue");
         endpointB.expectedHeaderReceived("color", "red");
         endpointB.expectedBodiesReceived("A red car!");
-        
+
         endpointC.expectedBodiesReceived("Message1", "Message2");
         endpointC.expectedMessageCount(2);
 
-        template.sendBodyAndHeader("activemq:queue:hello", "A blue car!", "color", "blue");
-        template.sendBodyAndHeader("activemq:queue:hello", "A red car!", "color", "red");
-        template.sendBodyAndHeader("activemq:queue:hello", "A blue car, again!", "color", "blue");
-        template.sendBodyAndHeader("activemq:queue:hello", "Message1", "SIZE_NUMBER", 1505);
-        template.sendBodyAndHeader("activemq:queue:hello", "Message3", "SIZE_NUMBER", 1300);
-        template.sendBodyAndHeader("activemq:queue:hello", "Message2", "SIZE_NUMBER", 1600);
+        template.sendBodyAndHeader("jms:queue:hello", "A blue car!", "color", "blue");
+        template.sendBodyAndHeader("jms:queue:hello", "A red car!", "color", "red");
+        template.sendBodyAndHeader("jms:queue:hello", "A blue car, again!", "color", "blue");
+        template.sendBodyAndHeader("jms:queue:hello", "Message1", "SIZE_NUMBER", 1505);
+        template.sendBodyAndHeader("jms:queue:hello", "Message3", "SIZE_NUMBER", 1300);
+        template.sendBodyAndHeader("jms:queue:hello", "Message2", "SIZE_NUMBER", 1600);
         assertMockEndpointsSatisfied();
     }
-    
+
     @Test
     public void testConsumerTemplate() throws Exception {
-        template.sendBodyAndHeader("activemq:queue:consumer", "Message1", "SIZE_NUMBER", 1505);
-        template.sendBodyAndHeader("activemq:queue:consumer", "Message3", "SIZE_NUMBER", 1300);
-        template.sendBodyAndHeader("activemq:queue:consumer", "Message2", "SIZE_NUMBER", 1600);
+        template.sendBodyAndHeader("jms:queue:consumer", "Message1", "SIZE_NUMBER", 1505);
+        template.sendBodyAndHeader("jms:queue:consumer", "Message3", "SIZE_NUMBER", 1300);
+        template.sendBodyAndHeader("jms:queue:consumer", "Message2", "SIZE_NUMBER", 1600);
 
         // process every exchange which is ready. If no exchange is left break
         // the loop
         while (true) {
-            Exchange ex = consumer.receiveNoWait("activemq:queue:consumer?selector=SIZE_NUMBER<1500");
+            Exchange ex = consumer.receiveNoWait("jms:queue:consumer?selector=SIZE_NUMBER<1500");
             if (ex != null) {
                 Message message = ex.getIn();
                 int size = message.getHeader("SIZE_NUMBER", int.class);
@@ -80,8 +76,7 @@ public class JmsSelectorOptionTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent(componentName, jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(CamelJmsTestHelper.createConnectionFactory()));
 
         return camelContext;
     }
@@ -89,9 +84,9 @@ public class JmsSelectorOptionTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:hello?selector=color='blue'").to("mock:a");
-                from("activemq:queue:hello?selector=color='red'").to("mock:b");
-                from("activemq:queue:hello?selector=SIZE_NUMBER>1500").to("mock:c");
+                from("jms:queue:hello?selector=color='blue'").to("mock:a");
+                from("jms:queue:hello?selector=color='red'").to("mock:b");
+                from("jms:queue:hello?selector=SIZE_NUMBER>1500").to("mock:c");
             }
         };
     }

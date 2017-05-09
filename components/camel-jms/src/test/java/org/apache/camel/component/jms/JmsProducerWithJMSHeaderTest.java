@@ -22,7 +22,6 @@ import java.util.Map;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
-import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -223,7 +222,7 @@ public class JmsProducerWithJMSHeaderTest extends CamelTestSupport {
 
     @Test
     public void testInOnlyJMSDestination() throws Exception {
-        Destination queue = new ActiveMQQueue("foo");
+        Destination queue = CamelJmsTestHelper.createQueue("foo");
 
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMessageCount(1);
@@ -251,7 +250,7 @@ public class JmsProducerWithJMSHeaderTest extends CamelTestSupport {
 
     @Test
     public void testInOutJMSDestination() throws Exception {
-        Destination queue = new ActiveMQQueue("reply");
+        Destination queue = CamelJmsTestHelper.createQueue("reply");
 
         String reply = (String) template.requestBodyAndHeader("activemq:queue:bar", "Hello World", JmsConstants.JMS_DESTINATION, queue);
         assertEquals("Bye World", reply);

@@ -33,13 +33,12 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.camel.util.ExchangeHelper;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- * @version 
- */
+@RunWith(MultipleJmsImplementations.class)
 public class ConsumeJmsMapMessageTest extends CamelTestSupport {
     protected JmsTemplate jmsTemplate;
     private MockEndpoint endpoint;
@@ -50,6 +49,7 @@ public class ConsumeJmsMapMessageTest extends CamelTestSupport {
 
         jmsTemplate.setPubSubDomain(false);
         jmsTemplate.send("test.map", new MessageCreator() {
+            @Override
             public Message createMessage(Session session) throws JMSException {
                 MapMessage mapMessage = session.createMapMessage();
                 mapMessage.setString("foo", "abc");
@@ -68,7 +68,7 @@ public class ConsumeJmsMapMessageTest extends CamelTestSupport {
         assertNotNull(ExchangeHelper.getBinding(exchange, JmsBinding.class));
         JmsMessage in = (JmsMessage) exchange.getIn();
         assertNotNull(in);
-        
+
         Map<?, ?> map = exchange.getIn().getBody(Map.class);
         log.info("Received map: " + map);
 
@@ -101,21 +101,24 @@ public class ConsumeJmsMapMessageTest extends CamelTestSupport {
         endpoint = getMockEndpoint("mock:result");
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
         jmsTemplate = new JmsTemplate(connectionFactory);
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
-                from("activemq:test.map").to("mock:result");
-                from("direct:test").to("activemq:test.map");
+                from("jms:test.map").to("mock:result");
+                from("direct:test").to("jms:test.map");
             }
         };
     }

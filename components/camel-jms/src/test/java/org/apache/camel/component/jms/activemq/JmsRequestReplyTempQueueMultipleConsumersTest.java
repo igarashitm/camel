@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms;
+package org.apache.camel.component.jms.activemq;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -23,11 +23,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.activemq.pool.PooledConnectionFactory;
+import org.apache.activemq.jms.pool.PooledConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jms.CamelJmsTestHelper;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
@@ -39,7 +40,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  */
 public class JmsRequestReplyTempQueueMultipleConsumersTest extends CamelTestSupport {
 
-    private final Map<String, AtomicInteger> msgsPerThread = new ConcurrentHashMap<String, AtomicInteger>();
+    private final Map<String, AtomicInteger> msgsPerThread = new ConcurrentHashMap<>();
     private PooledConnectionFactory connectionFactory;
     private ExecutorService executorService;
 
@@ -54,7 +55,7 @@ public class JmsRequestReplyTempQueueMultipleConsumersTest extends CamelTestSupp
 
         context.getExecutorServiceManager().shutdown(executorService);
     }
-    
+
     @Test
     public void testTempQueueRefreshed() throws Exception {
         executorService = context.getExecutorServiceManager().newFixedThreadPool(this, "test", 5);
@@ -79,6 +80,7 @@ public class JmsRequestReplyTempQueueMultipleConsumersTest extends CamelTestSupp
         for (int i = 0; i < files; i++) {
             final int index = i;
             executorService.submit(new Callable<Object>() {
+                @Override
                 public Object call() throws Exception {
                     template.sendBody("direct:start", "Message " + index);
                     return null;
@@ -88,11 +90,12 @@ public class JmsRequestReplyTempQueueMultipleConsumersTest extends CamelTestSupp
 
         assertMockEndpointsSatisfied(20, TimeUnit.SECONDS);
     }
-    
+
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
-        
-        connectionFactory = CamelJmsTestHelper.createPooledConnectionFactory();
+
+        connectionFactory = (PooledConnectionFactory) CamelJmsTestHelper.ACTIVEMQ.createPooledConnectionFactory();
         camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
@@ -122,5 +125,5 @@ public class JmsRequestReplyTempQueueMultipleConsumersTest extends CamelTestSupp
             }
         };
     }
-    
+
 }

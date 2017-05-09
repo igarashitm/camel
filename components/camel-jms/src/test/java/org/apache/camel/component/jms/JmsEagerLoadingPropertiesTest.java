@@ -25,11 +25,11 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- * @version 
- */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsEagerLoadingPropertiesTest extends CamelTestSupport {
 
     @Test
@@ -38,16 +38,17 @@ public class JmsEagerLoadingPropertiesTest extends CamelTestSupport {
         mock.expectedMessageCount(1);
         mock.expectedHeaderReceived("name", "Claus");
 
-        template.sendBodyAndHeader("activemq:queue:foo", "Hello World", "name", "Claus");
+        template.sendBodyAndHeader("jms:queue:foo", "Hello World", "name", "Claus");
 
         assertMockEndpointsSatisfied();
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -57,7 +58,8 @@ public class JmsEagerLoadingPropertiesTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo?eagerLoadingOfProperties=true").process(new Processor() {
+                from("jms:queue:foo?eagerLoadingOfProperties=true").process(new Processor() {
+                    @Override
                     public void process(Exchange exchange) throws Exception {
                         String name = exchange.getIn().getHeader("name", String.class);
                         assertEquals("Claus", name);

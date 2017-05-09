@@ -16,19 +16,24 @@
  */
 package org.apache.camel.component.jms;
 
-import javax.jms.ConnectionFactory;
-
 import org.apache.camel.CamelContext;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.NotifyBuilder;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
-/**
- *
- */
 public class JmsErrorHandlerLogStackTraceTest extends CamelTestSupport {
+
+    @Rule
+    public JmsMock mock = new JmsMock();
+
+    @Before
+    public void setup() {
+        mock.receiveMessageFromQueue();
+    }
 
     @Test
     public void testErrorHandlerLogStackTrace() throws Exception {
@@ -51,17 +56,16 @@ public class JmsErrorHandlerLogStackTraceTest extends CamelTestSupport {
                 // dont log any exhausted errors
                 errorHandler(defaultErrorHandler().logExhausted(false));
 
-                from("jms:queue:foo")
-                    .throwException(new IllegalArgumentException("Forced"));
+                from("jms:queue:foo").throwException(new IllegalArgumentException("Forced"));
             }
         };
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        JmsComponent jms = JmsComponent.jmsComponentAutoAcknowledge(connectionFactory);
+        JmsComponent jms = JmsComponent.jmsComponentAutoAcknowledge(mock.connectionFactory);
         jms.setErrorHandlerLogStackTrace(false);
         jms.setErrorHandlerLoggingLevel(LoggingLevel.ERROR);
         camelContext.addComponent("jms", jms);

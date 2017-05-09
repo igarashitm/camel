@@ -23,15 +23,12 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- * @version
- */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsDestinationResolverTest extends CamelTestSupport {
-
-    protected String componentName = "activemq";
 
     @Test
     public void testSendAndReceiveMessage() throws Exception {
@@ -44,24 +41,27 @@ public class JmsDestinationResolverTest extends CamelTestSupport {
         assertMockEndpointsSatisfied();
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent(componentName, jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
-        JmsComponent jms = camelContext.getComponent(componentName, JmsComponent.class);
+        JmsComponent jms = camelContext.getComponent("jms", JmsComponent.class);
         jms.setDestinationResolver(new MyDestinationResolver());
 
         return camelContext;
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
-                from("direct:start").to("activemq:queue:logicalNameForTestBQueue");
+                from("direct:start").to("jms:queue:logicalNameForTestBQueue");
 
-                from("activemq:queue:test.b").to("mock:result");
+                from("jms:queue:test.b").to("mock:result");
             }
         };
     }

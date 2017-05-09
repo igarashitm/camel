@@ -21,8 +21,6 @@ import javax.jms.DeliveryMode;
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
-
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
@@ -32,9 +30,7 @@ import org.apache.camel.ResolveEndpointFailedException;
 import org.apache.camel.ServiceStatus;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
-
 import org.junit.Test;
-
 import org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapter;
 import org.springframework.jms.core.JmsOperations;
 import org.springframework.jms.core.JmsTemplate;
@@ -44,18 +40,19 @@ import org.springframework.jms.listener.SimpleMessageListenerContainer;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.util.ErrorHandler;
 
-/**
- * @version 
- */
+import static org.mockito.Mockito.mock;
+
 public class JmsEndpointConfigurationTest extends CamelTestSupport {
 
     private final Processor failProcessor = new Processor() {
+        @Override
         public void process(Exchange exchange) throws Exception {
             fail("Should not be reached");
         }
     };
 
     private final Processor dummyProcessor = new Processor() {
+        @Override
         public void process(Exchange exchange) throws Exception {
             log.info("Received: " + exchange);
         }
@@ -401,12 +398,14 @@ public class JmsEndpointConfigurationTest extends CamelTestSupport {
         assertTrue(endpoint.isEagerLoadingOfProperties());
 
         endpoint.setExceptionListener(new ExceptionListener() {
+            @Override
             public void onException(JMSException exception) {
             }
         });
         assertNotNull(endpoint.getExceptionListener());
 
         endpoint.setErrorHandler(new ErrorHandler() {
+            @Override
             public void handleError(Throwable t) {
             }
         });
@@ -509,6 +508,7 @@ public class JmsEndpointConfigurationTest extends CamelTestSupport {
         assertEquals("isDeliveryPersistent()", true, configuration.isDeliveryPersistent());
 
         JmsConsumer consumer = endpoint.createConsumer(new Processor() {
+            @Override
             public void process(Exchange exchange) throws Exception {
                 log.info("Received: " + exchange);
             }
@@ -519,10 +519,11 @@ public class JmsEndpointConfigurationTest extends CamelTestSupport {
         assertEquals("isSubscriptionDurable()", true, listenerContainer.isSubscriptionDurable());
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
+        ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
         camelContext.addComponent("jms", JmsComponent.jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
@@ -531,7 +532,7 @@ public class JmsEndpointConfigurationTest extends CamelTestSupport {
     @Override
     protected JndiRegistry createRegistry() throws Exception {
         JndiRegistry jndi = super.createRegistry();
-        jndi.bind("myConnectionFactory", new ActiveMQConnectionFactory("vm:myBroker"));
+        jndi.bind("myConnectionFactory", mock(ConnectionFactory.class));
         return jndi;
     }
 

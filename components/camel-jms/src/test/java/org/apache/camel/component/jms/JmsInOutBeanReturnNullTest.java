@@ -17,7 +17,6 @@
 package org.apache.camel.component.jms;
 
 import java.io.Serializable;
-import javax.jms.ConnectionFactory;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -36,26 +35,26 @@ public class JmsInOutBeanReturnNullTest extends CamelTestSupport {
 
     @Test
     public void testReturnBean() throws Exception {
-        MyBean out = template.requestBody("activemq:queue:foo", "Camel", MyBean.class);
+        MyBean out = template.requestBody("jms:queue:foo", "Camel", MyBean.class);
         assertNotNull(out);
         assertEquals("Camel", out.getName());
     }
 
     @Test
     public void testReturnNull() throws Exception {
-        Object out = template.requestBody("activemq:queue:foo", "foo");
+        Object out = template.requestBody("jms:queue:foo", "foo");
         assertNull(out);
     }
 
     @Test
     public void testReturnNullMyBean() throws Exception {
-        MyBean out = template.requestBody("activemq:queue:foo", "foo", MyBean.class);
+        MyBean out = template.requestBody("jms:queue:foo", "foo", MyBean.class);
         assertNull(out);
     }
 
     @Test
     public void testReturnNullExchange() throws Exception {
-        Exchange reply = template.request("activemq:queue:foo", new Processor() {
+        Exchange reply = template.request("jms:queue:foo", new Processor() {
             @Override
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("foo");
@@ -71,8 +70,7 @@ public class JmsInOutBeanReturnNullTest extends CamelTestSupport {
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(CamelJmsTestHelper.createConnectionFactory()));
         return camelContext;
     }
 
@@ -81,8 +79,7 @@ public class JmsInOutBeanReturnNullTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
-                    .bean(JmsInOutBeanReturnNullTest.class, "doSomething");
+                from("jms:queue:foo").bean(JmsInOutBeanReturnNullTest.class, "doSomething");
             }
         };
     }

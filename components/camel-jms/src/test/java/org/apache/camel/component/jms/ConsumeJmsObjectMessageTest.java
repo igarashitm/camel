@@ -32,13 +32,12 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.camel.util.ExchangeHelper;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- * @version 
- */
+@RunWith(MultipleJmsImplementations.class)
 public class ConsumeJmsObjectMessageTest extends CamelTestSupport {
     protected JmsTemplate jmsTemplate;
     private MockEndpoint endpoint;
@@ -49,6 +48,7 @@ public class ConsumeJmsObjectMessageTest extends CamelTestSupport {
 
         jmsTemplate.setPubSubDomain(false);
         jmsTemplate.send("test.object", new MessageCreator() {
+            @Override
             public Message createMessage(Session session) throws JMSException {
                 ObjectMessage msg = session.createObjectMessage();
 
@@ -95,21 +95,24 @@ public class ConsumeJmsObjectMessageTest extends CamelTestSupport {
         endpoint = getMockEndpoint("mock:result");
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
         jmsTemplate = new JmsTemplate(connectionFactory);
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
-                from("activemq:test.object").to("mock:result");
-                from("direct:test").to("activemq:test.object");
+                from("jms:test.object").to("mock:result");
+                from("direct:test").to("jms:test.object");
             }
         };
     }

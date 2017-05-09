@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms.issues;
+package org.apache.camel.component.jms.activemq;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -80,6 +80,7 @@ public class ActiveMQPropagateSerializableHeadersTest extends CamelTestSupport {
             assertEquals("myCal", calValue, headerValue);
         }
         {
+            @SuppressWarnings("unchecked")
             Map<String, Object> headerValue = exchange.getIn().getHeader("myMap", Map.class);
             assertEquals("myMap", mapValue, headerValue);
         }
@@ -90,7 +91,7 @@ public class ActiveMQPropagateSerializableHeadersTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         // START SNIPPET: example
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
+        ConnectionFactory connectionFactory = CamelJmsTestHelper.ACTIVEMQ.createConnectionFactory();
         camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
         // END SNIPPET: example
 
@@ -100,8 +101,10 @@ public class ActiveMQPropagateSerializableHeadersTest extends CamelTestSupport {
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
                 from("activemq:test.a").process(new Processor() {
+                    @Override
                     public void process(Exchange exchange) throws Exception {
                         // set the JMS headers
                         Message in = exchange.getIn();

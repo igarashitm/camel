@@ -24,16 +24,16 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * JMSPriority being ordered using the resequencer in batch mode.
- * 
- * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsBatchResequencerJMSPriorityTest extends CamelTestSupport {
-    
+
     @Test
     public void testBatchResequencerJMSPriority() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
@@ -51,7 +51,8 @@ public class JmsBatchResequencerJMSPriorityTest extends CamelTestSupport {
 
         assertMockEndpointsSatisfied();
     }
-    
+
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 

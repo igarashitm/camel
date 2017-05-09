@@ -20,8 +20,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 
-import javax.jms.ConnectionFactory;
-
 import org.apache.camel.CamelContext;
 import org.apache.camel.Component;
 import org.apache.camel.ComponentConfiguration;
@@ -31,10 +29,6 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
-
 
 /**
  * Lets test the use of the ComponentConfiguration on the JMS endpoint
@@ -86,17 +80,20 @@ public class JmsComponentConfigurationTest extends CamelTestSupport {
                 config.getParameterType());
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        JmsComponent comp = jmsComponentAutoAcknowledge(connectionFactory);
+        JmsComponent comp = new JmsComponent();
         camelContext.addComponent(componentName, comp);
         return camelContext;
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
+                // no routes to configure
             }
         };
     }

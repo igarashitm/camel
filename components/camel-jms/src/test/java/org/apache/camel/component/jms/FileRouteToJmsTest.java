@@ -24,12 +24,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test that we can produce JMS message from files
  */
+@RunWith(MultipleJmsImplementations.class)
 public class FileRouteToJmsTest extends CamelTestSupport {
 
     protected String componentName = "activemq";
@@ -47,6 +49,7 @@ public class FileRouteToJmsTest extends CamelTestSupport {
         assertMockEndpointsSatisfied();
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
@@ -56,8 +59,10 @@ public class FileRouteToJmsTest extends CamelTestSupport {
         return camelContext;
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
                 from("file://target/routefromfile").to("activemq:queue:hello");
 

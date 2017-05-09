@@ -16,7 +16,6 @@
  */
 package org.apache.camel.component.jms;
 
-
 import java.util.Arrays;
 
 import javax.jms.BytesMessage;
@@ -33,15 +32,13 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.camel.util.ExchangeHelper;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-
-/**
- * @version 
- */
+@RunWith(MultipleJmsImplementations.class)
 public class ConsumeJmsBytesMessageTest extends CamelTestSupport {
     protected JmsTemplate jmsTemplate;
     private MockEndpoint endpoint;
@@ -52,6 +49,7 @@ public class ConsumeJmsBytesMessageTest extends CamelTestSupport {
 
         jmsTemplate.setPubSubDomain(false);
         jmsTemplate.send("test.bytes", new MessageCreator() {
+            @Override
             public Message createMessage(Session session) throws JMSException {
                 BytesMessage bytesMessage = session.createBytesMessage();
                 bytesMessage.writeByte((byte) 1);
@@ -84,7 +82,7 @@ public class ConsumeJmsBytesMessageTest extends CamelTestSupport {
         assertNotNull(ExchangeHelper.getBinding(exchange, JmsBinding.class));
         JmsMessage in = (JmsMessage) exchange.getIn();
         assertNotNull(in);
-        
+
         byte[] bytes = exchange.getIn().getBody(byte[].class);
         log.info("Received bytes: " + Arrays.toString(bytes));
 
@@ -102,21 +100,24 @@ public class ConsumeJmsBytesMessageTest extends CamelTestSupport {
         endpoint = getMockEndpoint("mock:result");
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
         jmsTemplate = new JmsTemplate(connectionFactory);
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
-                from("activemq:test.bytes").to("mock:result");
-                from("direct:test").to("activemq:test.bytes");
+                from("jms:test.bytes").to("mock:result");
+                from("direct:test").to("jms:test.bytes");
             }
         };
     }

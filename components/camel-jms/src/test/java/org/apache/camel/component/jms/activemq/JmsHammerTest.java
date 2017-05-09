@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms.issues;
+package org.apache.camel.component.jms.activemq;
 
 import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.camel.CamelContext;
@@ -30,8 +30,6 @@ import static org.apache.activemq.camel.component.ActiveMQComponent.activeMQComp
 
 /**
  * See MR-170
- *
- * @version 
  */
 @Ignore
 public class JmsHammerTest extends CamelTestSupport {
@@ -51,6 +49,7 @@ public class JmsHammerTest extends CamelTestSupport {
         message = sb.toString();
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ActiveMQComponent activemq =

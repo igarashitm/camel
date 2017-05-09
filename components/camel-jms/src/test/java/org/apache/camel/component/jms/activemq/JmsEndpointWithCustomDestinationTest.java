@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms.config;
+package org.apache.camel.component.jms.activemq;
 
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.camel.test.spring.CamelSpringTestSupport;
@@ -22,17 +22,13 @@ import org.junit.Test;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-
-/**
- * @version 
- */
 public class JmsEndpointWithCustomDestinationTest extends CamelSpringTestSupport {
 
     private Object expectedBody = "<hello>world!</hello>";
 
     @Override
     protected AbstractApplicationContext createApplicationContext() {
-        return new ClassPathXmlApplicationContext("org/apache/camel/component/jms/config/JmsEndpointWithCustomDestinationTest-context.xml");
+        return new ClassPathXmlApplicationContext("org/apache/camel/component/jms/activemq/JmsEndpointWithCustomDestinationTest-context.xml");
     }
 
     @Test

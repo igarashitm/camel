@@ -23,12 +23,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Testing with async stop listener
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsAsyncStopListenerTest extends CamelTestSupport {
 
     protected String componentName = "activemq";
@@ -44,6 +46,7 @@ public class JmsAsyncStopListenerTest extends CamelTestSupport {
         result.assertIsSatisfied();
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
@@ -55,8 +58,10 @@ public class JmsAsyncStopListenerTest extends CamelTestSupport {
         return camelContext;
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
                 from("activemq:queue:hello2").to("mock:result");
             }

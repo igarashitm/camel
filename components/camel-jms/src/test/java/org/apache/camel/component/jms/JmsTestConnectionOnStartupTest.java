@@ -17,8 +17,8 @@
 package org.apache.camel.component.jms;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.FailedToCreateConsumerException;
 import org.apache.camel.FailedToCreateProducerException;
@@ -27,6 +27,8 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @version 
@@ -72,8 +74,9 @@ public class JmsTestConnectionOnStartupTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
-        // we do not start a broker on tcp 61111
-        ConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61111");
+        ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+
+        when(connectionFactory.createConnection()).thenThrow(new JMSException("java.net.ConnectException"));
         camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;

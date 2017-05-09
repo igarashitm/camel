@@ -23,12 +23,11 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- * @version 
- */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsDurableTopicTest extends CamelTestSupport {
 
     @Test
@@ -42,15 +41,16 @@ public class JmsDurableTopicTest extends CamelTestSupport {
         // wait a bit and send the message
         Thread.sleep(1000);
 
-        template.sendBody("activemq:topic:foo", "Hello World");
+        template.sendBody("jms:topic:foo", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createPersistentConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -59,10 +59,10 @@ public class JmsDurableTopicTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:topic:foo?clientId=123&durableSubscriptionName=bar")
+                from("jms:topic:foo?clientId=123&durableSubscriptionName=bar")
                     .to("mock:result");
 
-                from("activemq:topic:foo?clientId=456&durableSubscriptionName=bar")
+                from("jms:topic:foo?clientId=456&durableSubscriptionName=bar")
                     .to("mock:result2");
             }
         };

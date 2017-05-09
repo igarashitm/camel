@@ -24,12 +24,11 @@ import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- *
- */
+@RunWith(MultipleJmsImplementations.class)
 public class FileRouteJmsKeepLastModifiedTest extends CamelTestSupport {
 
     protected String componentName = "activemq";
@@ -55,6 +54,7 @@ public class FileRouteJmsKeepLastModifiedTest extends CamelTestSupport {
         assertEquals("Should keep last modified", inbox.lastModified(), outbox.lastModified());
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
@@ -64,8 +64,10 @@ public class FileRouteJmsKeepLastModifiedTest extends CamelTestSupport {
         return camelContext;
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
                 from("file://target/inbox?noop=true").to("activemq:queue:hello");
 

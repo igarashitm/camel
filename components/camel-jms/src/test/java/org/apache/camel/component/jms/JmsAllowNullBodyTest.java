@@ -24,12 +24,11 @@ import org.apache.camel.CamelExecutionException;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- *
- */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsAllowNullBodyTest extends CamelTestSupport {
 
     @Test
@@ -77,6 +76,7 @@ public class JmsAllowNullBodyTest extends CamelTestSupport {
         }
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();

@@ -29,14 +29,13 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- * @version 
- */
+@RunWith(MultipleJmsImplementations.class)
 public class ConsumeMessageConverterTest extends CamelTestSupport {
 
     @Override
@@ -46,11 +45,12 @@ public class ConsumeMessageConverterTest extends CamelTestSupport {
         return jndi;
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -61,7 +61,7 @@ public class ConsumeMessageConverterTest extends CamelTestSupport {
         mock.expectedMessageCount(1);
         mock.message(0).body().isInstanceOf(TextMessage.class);
 
-        template.sendBody("activemq:queue:hello", "Hello World");
+        template.sendBody("jms:queue:hello", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -72,25 +72,29 @@ public class ConsumeMessageConverterTest extends CamelTestSupport {
         mock.expectedMessageCount(1);
         mock.message(0).body().isInstanceOf(BytesMessage.class);
 
-        template.sendBody("activemq:queue:hello", "Hello World".getBytes());
+        template.sendBody("jms:queue:hello", "Hello World".getBytes());
 
         assertMockEndpointsSatisfied();
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
-                from("activemq:queue:hello?messageConverter=#myMessageConverter").to("mock:result");
+                from("jms:queue:hello?messageConverter=#myMessageConverter").to("mock:result");
             }
         };
     }
 
     private static class MyMessageConverter implements MessageConverter {
 
+        @Override
         public Message toMessage(Object object, Session session) throws JMSException, MessageConversionException {
             return null;
         }
 
+        @Override
         public Object fromMessage(Message message) throws JMSException, MessageConversionException {
             // just return the underlying JMS message directly so we can test that this converter is used
             return message;

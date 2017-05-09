@@ -25,17 +25,17 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- * @version 
- */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsDeadLetterChannelInOutTest extends CamelTestSupport {
 
     @Test
     public void testJmsDLCInOut() throws Exception {
         Exchange out = template.send("direct:start", new Processor() {
+            @Override
             public void process(Exchange exchange) throws Exception {
                 // use InOut
                 exchange.setPattern(ExchangePattern.InOut);
@@ -45,17 +45,18 @@ public class JmsDeadLetterChannelInOutTest extends CamelTestSupport {
         assertNotNull(out);
 
         // should be in DLQ
-        Object dead = consumer.receiveBody("activemq:queue:error", 5000);
+        Object dead = consumer.receiveBody("jms:queue:error", 5000);
         assertEquals("Hello World", dead);
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         // must be persistent so the consumer can receive the message as we receive AFTER the message
         // has been published
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createPersistentConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -65,7 +66,7 @@ public class JmsDeadLetterChannelInOutTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                errorHandler(deadLetterChannel("activemq:queue:error"));
+                errorHandler(deadLetterChannel("jms:queue:error"));
 
                 from("direct:start").throwException(new IllegalArgumentException("Damn"));
             }

@@ -82,6 +82,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+    </dependency>
+
+    <!-- ActiveMQ JMS -->
+    <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-broker</artifactId>
       <scope>test</scope>
@@ -99,7 +105,6 @@
     <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-jaas</artifactId>
-      <version>${activemq-version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -118,7 +123,7 @@
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-camel</artifactId>
       <scope>test</scope>
-      <!-- break the cyclic dependency to camel-jms which otherwise would baffle the maven eclipse plugin -->
+      <!-- break the cyclic dependency to camel-jms which otherwise would baffle the maven eclipse plugin  -->
       <exclusions>
         <exclusion>
           <groupId>org.apache.camel</groupId>
@@ -141,14 +146,41 @@
     <dependency>
       <groupId>org.apache.xbean</groupId>
       <artifactId>xbean-spring</artifactId>
+      <scope>test</scope>
       <exclusions>
         <exclusion>
           <groupId>org.springframework</groupId>
           <artifactId>spring</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <!-- Artemis JMS -->
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>artemis-server</artifactId>
+      <version>${activemq-artemis-version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>artemis-jms-server</artifactId>
+      <version>${activemq-artemis-version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>artemis-jms-client</artifactId>
+      <version>${activemq-artemis-version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>artemis-amqp-protocol</artifactId>
+      <version>${activemq-artemis-version}</version>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
@@ -171,7 +203,7 @@
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <forkCount>1</forkCount>
+          <forkCount>8</forkCount>
           <reuseForks>false</reuseForks>
           <forkedProcessTimeoutInSeconds>6000</forkedProcessTimeoutInSeconds>
         </configuration>
@@ -189,5 +221,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

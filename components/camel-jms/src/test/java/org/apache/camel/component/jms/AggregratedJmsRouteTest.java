@@ -27,11 +27,13 @@ import org.apache.camel.processor.aggregate.AggregationStrategy;
 import org.apache.camel.processor.aggregate.UseLatestAggregationStrategy;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
+@RunWith(MultipleJmsImplementations.class)
 public class AggregratedJmsRouteTest extends CamelTestSupport {
 
     private static final Logger LOG = LoggerFactory.getLogger(AggregratedJmsRouteTest.class);
@@ -71,6 +73,7 @@ public class AggregratedJmsRouteTest extends CamelTestSupport {
         template.sendBodyAndHeader(uri, expectedBody, "cheese", 123);
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
@@ -80,12 +83,15 @@ public class AggregratedJmsRouteTest extends CamelTestSupport {
         return camelContext;
     }
 
+    @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
+            @Override
             public void configure() throws Exception {
                 from(timeOutEndpointUri).to("jms:queue:test.b");
 
                 from("jms:queue:test.b").aggregate(header("cheese"), new AggregationStrategy() {
+                    @Override
                     public Exchange aggregate(Exchange oldExchange, Exchange newExchange) {
                         try {
                             Thread.sleep(2000);
@@ -108,6 +114,7 @@ public class AggregratedJmsRouteTest extends CamelTestSupport {
     }
     private static class MyProcessor implements Processor {
 
+        @Override
         public void process(Exchange exchange) throws Exception {
             LOG.info("get the exchange here " + exchange);
         }

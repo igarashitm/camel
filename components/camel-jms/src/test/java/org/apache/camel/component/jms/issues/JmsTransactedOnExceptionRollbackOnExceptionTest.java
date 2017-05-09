@@ -68,7 +68,7 @@ public class JmsTransactedOnExceptionRollbackOnExceptionTest extends CamelTestSu
         CamelContext camelContext = super.createCamelContext();
 
         // no redeliveries
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory(null, 0);
+        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory(0);
         JmsComponent component = jmsComponentTransacted(connectionFactory);
         camelContext.addComponent("activemq", component);
         return camelContext;

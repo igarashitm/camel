@@ -21,12 +21,11 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentTransacted;
 
-/**
- * @version 
- */
+@RunWith(MultipleJmsImplementations.class)
 public class ConsumerTemplateJmsSelectorTest extends CamelTestSupport {
 
     @Test
@@ -44,6 +43,7 @@ public class ConsumerTemplateJmsSelectorTest extends CamelTestSupport {
         assertEquals("Hello World", body);
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 

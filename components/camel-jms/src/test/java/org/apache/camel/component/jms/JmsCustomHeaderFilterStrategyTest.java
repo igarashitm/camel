@@ -27,14 +27,12 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.spi.HeaderFilterStrategy;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-/**
- * @version 
- */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsCustomHeaderFilterStrategyTest extends CamelTestSupport {
-
-    protected String componentName = "activemq";
 
     @Test
     public void testCustomHeaderFilterStrategy() throws Exception {
@@ -47,18 +45,19 @@ public class JmsCustomHeaderFilterStrategyTest extends CamelTestSupport {
         headers.put("foo", "bar");
         headers.put("skipme", 123);
 
-        template.sendBodyAndHeaders("activemq:queue:foo", "Hello World", headers);
+        template.sendBodyAndHeaders("jms:queue:foo", "Hello World", headers);
 
         assertMockEndpointsSatisfied();
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent(componentName, jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
-        JmsComponent jms = camelContext.getComponent(componentName, JmsComponent.class);
+        JmsComponent jms = camelContext.getComponent("jms", JmsComponent.class);
         jms.setHeaderFilterStrategy(new MyHeaderFilterStrategy());
 
         return camelContext;
@@ -69,17 +68,19 @@ public class JmsCustomHeaderFilterStrategyTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo?eagerLoadingOfProperties=true").to("mock:result");
+                from("jms:queue:foo?eagerLoadingOfProperties=true").to("mock:result");
             }
         };
     }
 
     private static class MyHeaderFilterStrategy implements HeaderFilterStrategy {
 
+        @Override
         public boolean applyFilterToCamelHeaders(String s, Object o, Exchange exchange) {
             return false;
         }
 
+        @Override
         public boolean applyFilterToExternalHeaders(String s, Object o, Exchange exchange) {
             return s.equals("skipme");
         }

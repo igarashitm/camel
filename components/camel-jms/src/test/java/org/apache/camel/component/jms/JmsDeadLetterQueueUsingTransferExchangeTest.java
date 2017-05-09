@@ -25,17 +25,18 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test for using JMS as DLQ and to preserve the Exchange using transferExchange=true option
- *
- * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsDeadLetterQueueUsingTransferExchangeTest extends CamelTestSupport {
 
     protected String getUri() {
-        return "activemq:queue:dead?transferExchange=true";
+        return "jms:queue:dead?transferExchange=true";
     }
 
     @Test
@@ -58,11 +59,12 @@ public class JmsDeadLetterQueueUsingTransferExchangeTest extends CamelTestSuppor
         assertMockEndpointsSatisfied();
     }
 
+    @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -75,6 +77,7 @@ public class JmsDeadLetterQueueUsingTransferExchangeTest extends CamelTestSuppor
                 errorHandler(deadLetterChannel(getUri()).disableRedelivery());
 
                 from("direct:start").process(new Processor() {
+                    @Override
                     public void process(Exchange exchange) throws Exception {
                         String body = exchange.getIn().getBody(String.class);
                         if ("Kabom".equals(body)) {

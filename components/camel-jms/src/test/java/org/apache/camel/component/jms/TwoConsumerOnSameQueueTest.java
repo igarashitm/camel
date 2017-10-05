@@ -22,9 +22,11 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
+@RunWith(MultipleJmsImplementations.class)
 public class TwoConsumerOnSameQueueTest extends CamelTestSupport {
 
     @Test
@@ -45,8 +47,8 @@ public class TwoConsumerOnSameQueueTest extends CamelTestSupport {
         getMockEndpoint("mock:a").expectedMessageCount(0);
         getMockEndpoint("mock:b").expectedBodiesReceived("Bye World", "Bye World");
 
-        template.sendBody("activemq:queue:foo", "Bye World");
-        template.sendBody("activemq:queue:foo", "Bye World");
+        template.sendBody("jms:queue:foo", "Bye World");
+        template.sendBody("jms:queue:foo", "Bye World");
 
         assertMockEndpointsSatisfied();
 
@@ -73,8 +75,8 @@ public class TwoConsumerOnSameQueueTest extends CamelTestSupport {
         getMockEndpoint("mock:a").expectedMessageCount(0);
         getMockEndpoint("mock:b").expectedBodiesReceived("Bye World", "Bye World");
 
-        template.sendBody("activemq:queue:foo", "Bye World");
-        template.sendBody("activemq:queue:foo", "Bye World");
+        template.sendBody("jms:queue:foo", "Bye World");
+        template.sendBody("jms:queue:foo", "Bye World");
 
         assertMockEndpointsSatisfied();
     }
@@ -83,8 +85,8 @@ public class TwoConsumerOnSameQueueTest extends CamelTestSupport {
         getMockEndpoint("mock:a").expectedBodiesReceived("Hello World");
         getMockEndpoint("mock:b").expectedBodiesReceived("Hello World");
 
-        template.sendBody("activemq:queue:foo", "Hello World");
-        template.sendBody("activemq:queue:foo", "Hello World");
+        template.sendBody("jms:queue:foo", "Hello World");
+        template.sendBody("jms:queue:foo", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -93,7 +95,7 @@ public class TwoConsumerOnSameQueueTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createPersistentConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -103,10 +105,10 @@ public class TwoConsumerOnSameQueueTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo").routeId("a")
+                from("jms:queue:foo").routeId("a")
                      .to("log:a", "mock:a");
   
-                from("activemq:queue:foo").routeId("b")
+                from("jms:queue:foo").routeId("b")
                      .to("log:b", "mock:b");
             }
         };

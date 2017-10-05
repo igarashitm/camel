@@ -21,31 +21,34 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test for request-reply with jms where processing the input could cause: OK, FAULT or Exception
  */
+@RunWith(MultipleJmsImplementations.class)
 public class BruceHandlingBeanExceptionTest extends CamelTestSupport {
 
     @Test
     public void testSendOK() throws Exception {
-        Object out = template.requestBody("activemq:queue:ok", "Hello World");
+        Object out = template.requestBody("jms:queue:ok", "Hello World");
         assertEquals("Bye World", out);
     }
 
     @Test
     public void testSendFailure() throws Exception {
-        Object out = template.requestBody("activemq:queue:fault", "Hello World");
+        Object out = template.requestBody("jms:queue:fault", "Hello World");
         assertEquals("This is a fault message", out);
     }
 
     @Test
     public void testSendError() throws Exception {
-        Object out = template.requestBody("activemq:queue:error", "Hello World");
+        Object out = template.requestBody("jms:queue:error", "Hello World");
         IllegalArgumentException e = assertIsInstanceOf(IllegalArgumentException.class, out);
         assertEquals("Forced exception by unit test", e.getMessage());
     }
@@ -54,7 +57,7 @@ public class BruceHandlingBeanExceptionTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -63,11 +66,11 @@ public class BruceHandlingBeanExceptionTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:ok").transform(constant("Bye World"));
+                from("jms:queue:ok").transform(constant("Bye World"));
 
-                from("activemq:queue:fault").setFaultBody(constant("This is a fault message"));
+                from("jms:queue:fault").setFaultBody(constant("This is a fault message"));
 
-                from("activemq:queue:error?transferException=true").bean(MyExceptionBean.class);
+                from("jms:queue:error?transferException=true").bean(MyExceptionBean.class);
             }
         };
     }

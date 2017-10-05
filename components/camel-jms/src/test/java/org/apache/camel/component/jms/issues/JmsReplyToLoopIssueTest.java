@@ -21,14 +21,17 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsReplyToLoopIssueTest extends CamelTestSupport {
 
     @Test
@@ -48,7 +51,7 @@ public class JmsReplyToLoopIssueTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -59,14 +62,14 @@ public class JmsReplyToLoopIssueTest extends CamelTestSupport {
             public void configure() throws Exception {
                 from("direct:start")
                         // must enable preserveMessageQos to force Camel to use the JMSReplyTo header
-                        .to("activemq:queue:foo?preserveMessageQos=true")
+                        .to("jms:queue:foo?preserveMessageQos=true")
                         .to("mock:done");
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                         .to("log:foo?showAll=true", "mock:foo")
                         .transform(body().prepend("Bye "));
 
-                from("activemq:queue:bar")
+                from("jms:queue:bar")
                         .to("log:bar?showAll=true", "mock:bar");
             }
         };

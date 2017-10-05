@@ -22,12 +22,14 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplyExclusiveReplyToRemoveAddRouteTest extends CamelTestSupport {
 
     @Test
@@ -43,7 +45,7 @@ public class JmsRequestReplyExclusiveReplyToRemoveAddRouteTest extends CamelTest
             @Override
             public void configure() throws Exception {
                 from("direct:start2").routeId("start2")
-                        .to("activemq:queue:foo?replyTo=bar&replyToType=Exclusive")
+                        .to("jms:queue:foo?replyTo=bar&replyToType=Exclusive")
                         .to("log:start2");
             }
         });
@@ -58,7 +60,7 @@ public class JmsRequestReplyExclusiveReplyToRemoveAddRouteTest extends CamelTest
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -68,10 +70,10 @@ public class JmsRequestReplyExclusiveReplyToRemoveAddRouteTest extends CamelTest
             @Override
             public void configure() throws Exception {
                 from("direct:start").routeId("start")
-                    .to("activemq:queue:foo?replyTo=bar&replyToType=Exclusive")
+                    .to("jms:queue:foo?replyTo=bar&replyToType=Exclusive")
                     .to("log:start");
 
-                from("activemq:queue:foo").routeId("foo")
+                from("jms:queue:foo").routeId("foo")
                     .transform(body().prepend("Hello "));
             }
         };

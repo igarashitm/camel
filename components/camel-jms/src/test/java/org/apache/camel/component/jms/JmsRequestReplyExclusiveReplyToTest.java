@@ -25,6 +25,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.camel.util.StopWatch;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
@@ -34,17 +35,18 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  *
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplyExclusiveReplyToTest extends CamelTestSupport {
 
     @Test
     public void testJmsRequestReplyExclusiveFixedReplyTo() throws Exception {
         StopWatch watch = new StopWatch();
 
-        assertEquals("Hello A", template.requestBody("activemq:queue:foo?replyTo=bar&replyToType=Exclusive", "A"));
-        assertEquals("Hello B", template.requestBody("activemq:queue:foo?replyTo=bar&replyToType=Exclusive", "B"));
-        assertEquals("Hello C", template.requestBody("activemq:queue:foo?replyTo=bar&replyToType=Exclusive", "C"));
-        assertEquals("Hello D", template.requestBody("activemq:queue:foo?replyTo=bar&replyToType=Exclusive", "D"));
-        assertEquals("Hello E", template.requestBody("activemq:queue:foo?replyTo=bar&replyToType=Exclusive", "E"));
+        assertEquals("Hello A", template.requestBody("jms:queue:foo?replyTo=bar&replyToType=Exclusive", "A"));
+        assertEquals("Hello B", template.requestBody("jms:queue:foo?replyTo=bar&replyToType=Exclusive", "B"));
+        assertEquals("Hello C", template.requestBody("jms:queue:foo?replyTo=bar&replyToType=Exclusive", "C"));
+        assertEquals("Hello D", template.requestBody("jms:queue:foo?replyTo=bar&replyToType=Exclusive", "D"));
+        assertEquals("Hello E", template.requestBody("jms:queue:foo?replyTo=bar&replyToType=Exclusive", "E"));
 
         long delta = watch.stop();
         assertTrue("Should be faster than about 4 seconds, was: " + delta, delta < 4200);
@@ -53,7 +55,7 @@ public class JmsRequestReplyExclusiveReplyToTest extends CamelTestSupport {
     @Test
     public void testInvalidConfiguration() throws Exception {
         try {
-            template.requestBody("activemq:queue:foo?replyTo=bar&replyToType=Temporary", "Hello World");
+            template.requestBody("jms:queue:foo?replyTo=bar&replyToType=Temporary", "Hello World");
             fail("Should have thrown exception");
         } catch (CamelExecutionException e) {
             assertIsInstanceOf(FailedToCreateProducerException.class, e.getCause());
@@ -64,8 +66,14 @@ public class JmsRequestReplyExclusiveReplyToTest extends CamelTestSupport {
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        ConnectionFactory connectionFactory;
+        try {
+        connectionFactory = CamelJmsTestHelper.createConnectionFactory();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw t;
+        }
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -74,7 +82,7 @@ public class JmsRequestReplyExclusiveReplyToTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .transform(body().prepend("Hello "));
             }
         };

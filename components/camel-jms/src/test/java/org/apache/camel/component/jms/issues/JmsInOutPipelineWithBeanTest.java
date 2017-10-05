@@ -23,39 +23,42 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test from an user request on the forum.
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutPipelineWithBeanTest extends CamelTestSupport {
 
     @Test
     public void testA() throws Exception {
-        Object response = template.requestBody("activemq:testA", "Hello World");
+        Object response = template.requestBody("jms:testA", "Hello World");
         assertEquals("Reply", "Hello World,From Bean,From A,From B", response);
     }
 
     @Test
     public void testB() throws Exception {
-        Object response = template.requestBody("activemq:testB", "Hello World");
+        Object response = template.requestBody("jms:testB", "Hello World");
         assertEquals("Reply", "Hello World,From A,From Bean,From B", response);
     }
 
     @Test
     public void testC() throws Exception {
-        Object response = template.requestBody("activemq:testC", "Hello World");
+        Object response = template.requestBody("jms:testC", "Hello World");
         assertEquals("Reply", "Hello World,From A,From B,From Bean", response);
     }
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -69,18 +72,18 @@ public class JmsInOutPipelineWithBeanTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:testA").to("bean:dummyBean").to("activemq:a").to("activemq:b");
-                from("activemq:testB").to("activemq:a").to("bean:dummyBean").to("activemq:b");
-                from("activemq:testC").to("activemq:a").to("activemq:b").to("bean:dummyBean");
+                from("jms:testA").to("bean:dummyBean").to("jms:a").to("jms:b");
+                from("jms:testB").to("jms:a").to("bean:dummyBean").to("jms:b");
+                from("jms:testC").to("jms:a").to("jms:b").to("bean:dummyBean");
 
-                from("activemq:a").process(new Processor() {
+                from("jms:a").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         String body = exchange.getIn().getBody(String.class);
                         exchange.getOut().setBody(body + ",From A");
                     }
                 });
 
-                from("activemq:b").process(new Processor() {
+                from("jms:b").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         String body = exchange.getIn().getBody(String.class);
                         exchange.getOut().setBody(body + ",From B");

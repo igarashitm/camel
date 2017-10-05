@@ -32,6 +32,7 @@ import org.apache.camel.Consume;
 import org.apache.camel.Header;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 
@@ -40,6 +41,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplyManualReplyTest extends CamelTestSupport {
 
     private static volatile String tempName;
@@ -51,11 +53,11 @@ public class JmsRequestReplyManualReplyTest extends CamelTestSupport {
         return false;
     }
 
-    @Consume(uri = "activemq:queue:foo")
+    @Consume(uri = "jms:queue:foo")
     public void doSomething(@Header("JMSReplyTo") Destination jmsReplyTo, @Body String body) throws Exception {
         assertEquals("Hello World", body);
 
-        String endpointName = "activemq:" + jmsReplyTo.toString();
+        String endpointName = "jms:" + jmsReplyTo.toString();
         endpointName = endpointName.replaceAll("//", ":");
 
         tempName = endpointName;
@@ -86,7 +88,7 @@ public class JmsRequestReplyManualReplyTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         jms = new JmsTemplate(connectionFactory);
         return camelContext;

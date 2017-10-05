@@ -47,13 +47,13 @@ public class JMXTXUseOriginalBodyWithDLCErrorHandlerTest extends JMXTXUseOrigina
     @EndpointInject(uri = "mock:checkpoint2")
     protected MockEndpoint checkpoint2;
 
-    @Produce(uri = "activemq:start")
+    @Produce(uri = "jms:start")
     protected ProducerTemplate start;
 
-    @Produce(uri = "activemq:broken")
+    @Produce(uri = "jms:broken")
     protected ProducerTemplate broken;
 
-    @Produce(uri = "activemq:ok")
+    @Produce(uri = "jms:ok")
     protected ProducerTemplate ok;
 
     @Override
@@ -121,7 +121,7 @@ public class JMXTXUseOriginalBodyWithDLCErrorHandlerTest extends JMXTXUseOrigina
                     .maximumRedeliveries(2)
                     .to("mock:error");
 
-            from("activemq:broken")
+            from("jms:broken")
                     .transacted()
                     .to("mock:checkpoint1")
                     .setBody(method("foo"))
@@ -129,7 +129,7 @@ public class JMXTXUseOriginalBodyWithDLCErrorHandlerTest extends JMXTXUseOrigina
                     .throwException(new Exception("boo"))
                     .to("mock:end");
 
-            from("activemq:start")
+            from("jms:start")
                     .transacted()
                     .to("mock:checkpoint1")
                     .setBody(constant("oh no"))
@@ -137,7 +137,7 @@ public class JMXTXUseOriginalBodyWithDLCErrorHandlerTest extends JMXTXUseOrigina
                     .throwException(new Exception("boo"))
                     .to("mock:end");
 
-            from("activemq:ok")
+            from("jms:ok")
                     .transacted()
                     .to("mock:checkpoint1")
                     .setBody(constant("oh no"))

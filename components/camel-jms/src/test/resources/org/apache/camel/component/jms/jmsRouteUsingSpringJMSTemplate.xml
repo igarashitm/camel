@@ -29,12 +29,18 @@
       <jmxAgent id="agent" disabled="true"/>
   </camelContext>
 
-  <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
-    <property name="jmsOperations" ref="jmsTemplate"/>
+  <bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
+    <property name="configuration" ref="config"/>
   </bean>
   
-  <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+  <bean name="config" class="org.apache.camel.component.jms.JmsConfiguration">
     <property name="connectionFactory" ref="connectionFactory"/>
+    <property name="jmsOperations" ref="jmsTemplate"/>
+  </bean>
+
+  <bean id="jmsTemplate" class="org.apache.camel.component.jms.JmsConfiguration.CamelJmsTemplate">
+    <constructor-arg ref="config"/>
+    <constructor-arg ref="connectionFactory"/>
     <property name="pubSubDomain" value="false"/>
     <property name="receiveTimeout" value="20000"/>
   </bean>

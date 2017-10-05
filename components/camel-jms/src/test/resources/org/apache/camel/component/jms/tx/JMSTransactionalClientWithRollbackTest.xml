@@ -32,7 +32,7 @@
         <!-- and now our route using the XML syntax -->
         <route errorHandlerRef="errorHandler">
             <!-- 1: from the jms queue -->
-            <from uri="activemq:queue:okay"/>
+            <from uri="jms:queue:okay"/>
             <!-- 2: setup the transactional boundaries to require a transaction -->
             <transacted ref="PROPAGATION_REQUIRED"/>
             <!-- 3: call our business logic that is myProcessor -->
@@ -83,7 +83,7 @@
     </bean>
 
     <!-- activemq component -->
-    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
         <property name="configuration" ref="jmsConfig"/>
     </bean>
 

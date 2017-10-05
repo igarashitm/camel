@@ -22,23 +22,26 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.camel.util.StopWatch;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class AsyncJmsInOutTest extends CamelTestSupport {
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -76,10 +79,10 @@ public class AsyncJmsInOutTest extends CamelTestSupport {
                 from("seda:start")
                     // we can only send at fastest the 100 msg in 5 sec due the delay
                     .delay(50)
-                    .inOut("activemq:queue:bar")
+                    .inOut("jms:queue:bar")
                     .to("mock:result");
 
-                from("activemq:queue:bar")
+                from("jms:queue:bar")
                     .log("Using ${threadName} to process ${body}")
                     // we can only process at fastest the 100 msg in 5 sec due the delay
                     .delay(50)

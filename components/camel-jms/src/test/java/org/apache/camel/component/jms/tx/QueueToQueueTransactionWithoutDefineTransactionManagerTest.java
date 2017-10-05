@@ -37,8 +37,8 @@ public class QueueToQueueTransactionWithoutDefineTransactionManagerTest extends 
             @Override
             public void configure() throws Exception {
                 errorHandler(noErrorHandler());
-                from("activemq:queue:foo?transacted=false").process(new ConditionalExceptionProcessor())
-                        .to("activemq:queue:bar?transacted=false");
+                from("jms:queue:foo?transacted=false").process(new ConditionalExceptionProcessor())
+                        .to("jms:queue:bar?transacted=false");
 
 
             }
@@ -46,7 +46,7 @@ public class QueueToQueueTransactionWithoutDefineTransactionManagerTest extends 
 
         NotifyBuilder notify = new NotifyBuilder(context).whenDone(1).create();
 
-        template.sendBody("activemq:queue:foo", "blah");
+        template.sendBody("jms:queue:foo", "blah");
 
         notify.matchesMockWaitTime();
 

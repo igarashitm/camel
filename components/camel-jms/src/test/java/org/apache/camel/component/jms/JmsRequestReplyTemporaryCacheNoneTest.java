@@ -25,15 +25,17 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplyTemporaryCacheNoneTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
@@ -54,9 +56,9 @@ public class JmsRequestReplyTemporaryCacheNoneTest extends CamelTestSupport {
         context.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("direct:start").to("activemq:queue:hello?replyToCacheLevelName=CACHE_NONE");
+                from("direct:start").to("jms:queue:hello?replyToCacheLevelName=CACHE_NONE");
 
-                from("activemq:queue:hello").process(new Processor() {
+                from("jms:queue:hello").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         exchange.getIn().setBody("Bye World");
                         assertNotNull(exchange.getIn().getHeader("JMSReplyTo"));

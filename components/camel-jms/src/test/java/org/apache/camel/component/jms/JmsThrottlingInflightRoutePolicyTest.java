@@ -24,11 +24,14 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.ThrottlingInflightRoutePolicy;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentTransacted;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsThrottlingInflightRoutePolicyTest extends CamelTestSupport {
 
     private int size = 200;
@@ -39,7 +42,7 @@ public class JmsThrottlingInflightRoutePolicyTest extends CamelTestSupport {
         mock.expectedMinimumMessageCount(size);
 
         for (int i = 0; i < size; i++) {
-            template.sendBody("activemq-sender:queue:foo", "Message " + i);
+            template.sendBody("jms-sender:queue:foo", "Message " + i);
         }
 
         assertMockEndpointsSatisfied();
@@ -55,7 +58,7 @@ public class JmsThrottlingInflightRoutePolicyTest extends CamelTestSupport {
                 policy.setResumePercentOfMax(50);
                 policy.setScope(ThrottlingInflightRoutePolicy.ThrottlingScope.Route);
 
-                from("activemq:queue:foo?concurrentConsumers=20").routePolicy(policy)
+                from("jms:queue:foo?concurrentConsumers=20").routePolicy(policy)
                         .delay(100)
                         .to("log:foo?groupSize=10").to("mock:result");
             }
@@ -66,10 +69,10 @@ public class JmsThrottlingInflightRoutePolicyTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createPersistentConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentTransacted(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentTransacted(connectionFactory));
 
         // and use another component for sender
-        camelContext.addComponent("activemq-sender", jmsComponentTransacted(connectionFactory));
+        camelContext.addComponent("jms-sender", jmsComponentTransacted(connectionFactory));
 
         return camelContext;
     }

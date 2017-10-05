@@ -33,7 +33,7 @@
         <!-- in this route the transactionErrorHandler is used -->
         <camel:route errorHandlerRef="transactionErrorHandler">
             <!-- 1: from the jms queue -->
-            <camel:from uri="activemq:queue:okay"/>
+            <camel:from uri="jms:queue:okay"/>
             <!-- 2: setup the transactional boundaries to require a transaction -->
             <camel:transacted ref="required"/>
             <!-- 3: call our business logic that is myProcessor -->
@@ -45,7 +45,7 @@
         <!-- 2nd route with no error handling -->
         <!-- this route doens't use error handler, in fact the spring bean with id noErrorHandler -->
         <camel:route errorHandlerRef="noErrorHandler">
-            <camel:from uri="activemq:queue:bad"/>
+            <camel:from uri="jms:queue:bad"/>
             <camel:to uri="log:bad"/>
         </camel:route>
 
@@ -92,7 +92,7 @@
         <property name="concurrentConsumers" value="1"/>
     </bean>
 
-    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
         <property name="configuration" ref="jmsConfig"/>
     </bean>
 

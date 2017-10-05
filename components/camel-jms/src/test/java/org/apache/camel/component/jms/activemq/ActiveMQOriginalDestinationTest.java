@@ -37,19 +37,19 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 
 public class ActiveMQOriginalDestinationTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testActiveMQOriginalDestination() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:foo", "Hello World");
+        template.sendBody("jms:queue:foo", "Hello World");
 
         assertMockEndpointsSatisfied();
 
         // consume from bar
-        Exchange out = consumer.receive("activemq:queue:bar", 5000);
+        Exchange out = consumer.receive("jms:queue:bar", 5000);
         assertNotNull(out);
 
         // and we should have foo as the original destination
@@ -80,8 +80,8 @@ public class ActiveMQOriginalDestinationTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
-                    .to("activemq:queue:bar")
+                from("jms:queue:foo")
+                    .to("jms:queue:bar")
                     .to("mock:result");
             }
         };

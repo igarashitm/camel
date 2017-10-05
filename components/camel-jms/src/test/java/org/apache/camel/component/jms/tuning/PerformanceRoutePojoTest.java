@@ -53,7 +53,7 @@ public class PerformanceRoutePojoTest extends CamelSpringTestSupport {
             } else {
                 type = "bronze";
             }
-            template.sendBodyAndHeader("activemq:queue:inbox", "Message " + i, "type", type);
+            template.sendBodyAndHeader("jms:queue:inbox", "Message " + i, "type", type);
         }
 
         assertMockEndpointsSatisfied();

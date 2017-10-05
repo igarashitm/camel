@@ -14,52 +14,64 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms;
+package org.apache.camel.component.jms.activemq;
 
 import javax.jms.ConnectionFactory;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.JmsComponent;
+import org.apache.camel.component.jms.JmsEndpoint;
+import org.apache.camel.component.jms.JmsQueueEndpoint;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
-public class JmsSelectorInTest extends CamelTestSupport {
+public class ActiveMQJmsSelectorInTest extends CamelTestSupport {
 
     @Test
     public void testJmsSelectorIn() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedBodiesReceived("Carlsberg", "Santa Rita");
 
-        template.sendBodyAndHeader("activemq:queue:foo", "Carlsberg", "drink", "beer");
-        template.sendBodyAndHeader("activemq:queue:foo", "Coca Cola", "drink", "soft");
-        template.sendBodyAndHeader("activemq:queue:foo", "Santa Rita", "drink", "wine");
+        template.sendBodyAndHeader("jms:queue:foo", "Carlsberg", "drink", "beer");
+        template.sendBodyAndHeader("jms:queue:foo", "Coca Cola", "drink", "soft");
+        template.sendBodyAndHeader("jms:queue:foo", "Santa Rita", "drink", "wine");
 
         mock.assertIsSatisfied();
+        assertQueueMessagesByBrowsing();
+    }
 
+    protected void assertQueueMessagesByBrowsing() {
         // and there should also only be 2 if browsing as the selector was configured in the route builder
-        JmsQueueEndpoint endpoint = context.getEndpoint("activemq:queue:foo", JmsQueueEndpoint.class);
+        JmsQueueEndpoint endpoint = context.getEndpoint("jms:queue:foo", JmsQueueEndpoint.class);
         assertEquals(2, endpoint.getExchanges().size());
     }
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
+        ConnectionFactory connectionFactory = doCreateConnectionFactory();
         JmsComponent component = jmsComponentAutoAcknowledge(connectionFactory);
-        camelContext.addComponent("activemq", component);
+        camelContext.addComponent("jms", component);
         return camelContext;
+    }
+
+    protected ConnectionFactory doCreateConnectionFactory() {
+        return CamelJmsTestHelper.ACTIVEMQ.createConnectionFactory();
     }
 
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                JmsEndpoint endpoint = context.getEndpoint("activemq:queue:foo", JmsEndpoint.class);
+                JmsEndpoint endpoint = context.getEndpoint("jms:queue:foo", JmsEndpoint.class);
                 endpoint.setSelector("drink IN ('beer', 'wine')");
 
                 from(endpoint).to("log:drink").to("mock:result");

@@ -30,6 +30,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
@@ -39,6 +40,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  *
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsXMLRouteTest extends CamelTestSupport {
 
     private static final String TEST_LONDON = "src/test/data/message1.xml";
@@ -189,7 +191,7 @@ public class JmsXMLRouteTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -205,15 +207,15 @@ public class JmsXMLRouteTest extends CamelTestSupport {
                 errorHandler(deadLetterChannel("mock:error").redeliveryDelay(0));
 
                 // no need to convert to String as JMS producer can handle XML streams now
-                from("direct:object").to("activemq:queue:object?jmsMessageType=Object");
+                from("direct:object").to("jms:queue:object?jmsMessageType=Object");
 
                 // no need to convert to String as JMS producer can handle XML streams now
-                from("direct:bytes").to("activemq:queue:bytes?jmsMessageType=Bytes");
+                from("direct:bytes").to("jms:queue:bytes?jmsMessageType=Bytes");
 
                 // no need to convert to String as JMS producer can handle XML streams now
-                from("direct:default").to("activemq:queue:default");
+                from("direct:default").to("jms:queue:default");
 
-                from("activemq:queue:object")
+                from("jms:queue:object")
                     .process(new Processor() {
                         public void process(Exchange exchange) throws Exception {
                             Object body = exchange.getIn().getBody();
@@ -222,7 +224,7 @@ public class JmsXMLRouteTest extends CamelTestSupport {
                         }
                     }).to("seda:choice");
 
-                from("activemq:queue:bytes")
+                from("jms:queue:bytes")
                     .process(new Processor() {
                         public void process(Exchange exchange) throws Exception {
                             Object body = exchange.getIn().getBody();
@@ -231,7 +233,7 @@ public class JmsXMLRouteTest extends CamelTestSupport {
                         }
                     }).to("seda:choice");
 
-                from("activemq:queue:default")
+                from("jms:queue:default")
                     .to("seda:choice");
 
                 from("seda:choice")

@@ -67,7 +67,7 @@ public class JMSTXInOutPersistentQueueTest extends CamelSpringTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("direct:start").inOut("activemq:queue:foo?replyTo=myReplies")
+                from("direct:start").inOut("jms:queue:foo?replyTo=myReplies")
                     .to("mock:reply")
                     .process(new Processor() {
                         public void process(Exchange exchange) throws Exception {
@@ -77,7 +77,7 @@ public class JMSTXInOutPersistentQueueTest extends CamelSpringTestSupport {
                         }
                     }).to("mock:result");
 
-                from("activemq:queue:foo").to("mock:foo").transform(body().prepend("Bye "));
+                from("jms:queue:foo").to("mock:foo").transform(body().prepend("Bye "));
             }
         };
     }

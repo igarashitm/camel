@@ -22,18 +22,20 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOnlyWithReplyToDisabledButJMSReplyToHeaderPreservedTest extends CamelTestSupport {
 
     @Test
     public void testJMSReplyToHeaderPreserved() throws Exception {
         getMockEndpoint("mock:foo").expectedBodiesReceived("Hello World");
-        getMockEndpoint("mock:foo").expectedHeaderReceived("JMSReplyTo", "queue://bar");
+        getMockEndpoint("mock:foo").allMessages().header("JMSReplyTo").convertToString().contains("bar");
         getMockEndpoint("mock:done").expectedBodiesReceived("Hello World");
 
         template.sendBody("direct:start", "Hello World");
@@ -44,7 +46,7 @@ public class JmsInOnlyWithReplyToDisabledButJMSReplyToHeaderPreservedTest extend
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -55,11 +57,11 @@ public class JmsInOnlyWithReplyToDisabledButJMSReplyToHeaderPreservedTest extend
             public void configure() throws Exception {
                 from("direct:start")
                     // must use preserveMessageQos to include JMSReplyTo
-                    .to("activemq:queue:foo?replyTo=queue:bar&preserveMessageQos=true")
+                    .to("jms:queue:foo?replyTo=queue:bar&preserveMessageQos=true")
                     .to("mock:done");
 
                 // and disable reply to as we do not want to send back a reply message in this route
-                from("activemq:queue:foo?disableReplyTo=true")
+                from("jms:queue:foo?disableReplyTo=true")
                     .to("log:foo?showAll=true", "mock:foo");
             }
         };

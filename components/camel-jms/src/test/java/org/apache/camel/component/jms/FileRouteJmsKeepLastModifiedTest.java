@@ -31,7 +31,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 @RunWith(MultipleJmsImplementations.class)
 public class FileRouteJmsKeepLastModifiedTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Override
     public void setUp() throws Exception {
@@ -69,9 +69,9 @@ public class FileRouteJmsKeepLastModifiedTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("file://target/inbox?noop=true").to("activemq:queue:hello");
+                from("file://target/inbox?noop=true").to("jms:queue:hello");
 
-                from("activemq:queue:hello")
+                from("jms:queue:hello")
                     // just a little delay so the write of the file happens later
                     .delayer(100)
                     .to("file://target/outbox?keepLastModified=true")

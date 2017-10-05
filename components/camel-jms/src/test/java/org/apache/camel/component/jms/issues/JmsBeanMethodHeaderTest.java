@@ -24,16 +24,19 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test for sending the bean method name as a key over the JMS wire, that we now support this.
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsBeanMethodHeaderTest extends CamelTestSupport {
 
     @Test
@@ -74,7 +77,7 @@ public class JmsBeanMethodHeaderTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:approve");
         mock.expectedBodiesReceived("Yes");
 
-        template.sendBodyAndHeader("activemq:approve", ExchangePattern.InOut, "James",
+        template.sendBodyAndHeader("jms:approve", ExchangePattern.InOut, "James",
             Exchange.BEAN_METHOD_NAME, "approveLoan");
 
         mock.assertIsSatisfied();
@@ -86,7 +89,7 @@ public class JmsBeanMethodHeaderTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:approve");
         mock.expectedBodiesReceived("No");
 
-        template.sendBodyAndHeader("activemq:queue", ExchangePattern.InOut, "James",
+        template.sendBodyAndHeader("jms:queue", ExchangePattern.InOut, "James",
             Exchange.BEAN_METHOD_NAME, "approveSuperLoan");
 
         mock.assertIsSatisfied();
@@ -96,7 +99,7 @@ public class JmsBeanMethodHeaderTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -110,12 +113,12 @@ public class JmsBeanMethodHeaderTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("direct:in").to("activemq:test.a");
-                from("activemq:test.a").to("mock:result");
+                from("direct:in").to("jms:test.a");
+                from("jms:test.a").to("mock:result");
 
-                from("activemq:queue").to("activemq:approve");
+                from("jms:queue").to("jms:approve");
 
-                from("activemq:approve").to("direct:approve");
+                from("jms:approve").to("direct:approve");
 
                 from("direct:approve").to("bean:approveService").to("mock:approve");
             }

@@ -55,7 +55,7 @@ public abstract class AbstractTransactionTest extends CamelSpringTestSupport {
         // should be 1 completed and 1 failed
         NotifyBuilder notify = new NotifyBuilder(context).whenDone(2).create();
 
-        template.sendBody("activemq:queue:foo", "blah");
+        template.sendBody("jms:queue:foo", "blah");
 
         notify.matchesMockWaitTime();
 

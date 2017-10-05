@@ -37,7 +37,7 @@ public class TransactionInterceptSendToEndpointTest extends CamelSpringTestSuppo
         getMockEndpoint("mock:detour").expectedMessageCount(1);
         getMockEndpoint("mock:foo").expectedMessageCount(0);
 
-        template.sendBody("activemq:start", "Hello World");
+        template.sendBody("jms:start", "Hello World");
 
         assertMockEndpointsSatisfied();
     }

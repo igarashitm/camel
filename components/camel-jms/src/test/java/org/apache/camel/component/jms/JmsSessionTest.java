@@ -26,22 +26,24 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsSessionTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testJmsSession() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:foo", "Hello World");
+        template.sendBody("jms:queue:foo", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -60,7 +62,7 @@ public class JmsSessionTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                         .process(new Processor() {
                             @Override
                             public void process(Exchange exchange) throws Exception {

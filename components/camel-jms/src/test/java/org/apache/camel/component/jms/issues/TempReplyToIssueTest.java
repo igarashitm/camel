@@ -27,20 +27,23 @@ import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.jms.JmsConstants;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class TempReplyToIssueTest extends CamelTestSupport {
 
     @Test
     public void testReplyToIssue() throws Exception {
-        String out = template.requestBody("activemq:queue:test.queue", "World", String.class);
+        String out = template.requestBody("jms:queue:test.queue", "World", String.class);
         // we should receive that fixed reply
         assertEquals("Hello Moon", out);
     }
@@ -49,11 +52,10 @@ public class TempReplyToIssueTest extends CamelTestSupport {
                                 @Header("JMSCorrelationID") final String id,
                                 @Body String body, Exchange exchange) throws Exception {
         assertNotNull(jmsReplyTo);
-        assertTrue("Should be a temp queue", jmsReplyTo.toString().startsWith("temp-queue"));
 
         // we send the reply manually (notice we just use a bogus endpoint uri)
         ProducerTemplate producer = exchange.getContext().createProducerTemplate();
-        producer.send("activemq:queue:xxx", new Processor() {
+        producer.send("jms:queue:xxx", new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("Hello Moon");
                 // remember to set correlation id
@@ -76,7 +78,7 @@ public class TempReplyToIssueTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -85,7 +87,7 @@ public class TempReplyToIssueTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:test.queue").bean(TempReplyToIssueTest.class, "handleMessage");
+                from("jms:queue:test.queue").bean(TempReplyToIssueTest.class, "handleMessage");
             }
         };
     }

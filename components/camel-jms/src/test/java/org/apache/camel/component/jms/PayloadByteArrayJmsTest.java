@@ -30,6 +30,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
@@ -37,9 +38,10 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 /**
  * Unit test that we send payload as byte[] for certain types
  */
+@RunWith(MultipleJmsImplementations.class)
 public class PayloadByteArrayJmsTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testReaderShouldBeByteArray() throws Exception {
@@ -50,7 +52,7 @@ public class PayloadByteArrayJmsTest extends CamelTestSupport {
 
         Reader body = new StringReader("Hello World");
 
-        template.sendBody("activemq:queue:hello", body);
+        template.sendBody("jms:queue:hello", body);
 
         assertMockEndpointsSatisfied();
     }
@@ -64,7 +66,7 @@ public class PayloadByteArrayJmsTest extends CamelTestSupport {
 
         InputStream body = new ByteArrayInputStream("Hello World".getBytes());
 
-        template.sendBody("activemq:queue:hello", body);
+        template.sendBody("jms:queue:hello", body);
 
         assertMockEndpointsSatisfied();
     }
@@ -78,7 +80,7 @@ public class PayloadByteArrayJmsTest extends CamelTestSupport {
 
         ByteBuffer body = ByteBuffer.wrap("Hello World".getBytes());
 
-        template.sendBody("activemq:queue:hello", body);
+        template.sendBody("jms:queue:hello", body);
 
         assertMockEndpointsSatisfied();
     }
@@ -95,7 +97,7 @@ public class PayloadByteArrayJmsTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:hello").to("mock:result");
+                from("jms:queue:hello").to("mock:result");
             }
         };
     }

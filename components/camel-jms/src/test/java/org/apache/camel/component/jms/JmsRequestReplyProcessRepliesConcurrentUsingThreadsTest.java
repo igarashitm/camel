@@ -24,15 +24,17 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplyProcessRepliesConcurrentUsingThreadsTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testRequestReplyWithConcurrent() throws Exception {
@@ -64,13 +66,13 @@ public class JmsRequestReplyProcessRepliesConcurrentUsingThreadsTest extends Cam
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .log("request - ${body}")
                     .transform(body().prepend("Bye "));
 
                 from("seda:start")
                     .setExchangePattern(ExchangePattern.InOut)
-                    .to("activemq:queue:foo")
+                    .to("jms:queue:foo")
                     .log("reply   - ${body}")
                     .threads(5)
                     .log("delay   - ${body}")

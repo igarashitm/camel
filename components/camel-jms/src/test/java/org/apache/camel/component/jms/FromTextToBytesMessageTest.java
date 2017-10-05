@@ -35,7 +35,7 @@ public class FromTextToBytesMessageTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:bar");
         mock.expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:foo", "3");
+        template.sendBody("jms:queue:foo", "3");
 
         assertMockEndpointsSatisfied();
 
@@ -49,7 +49,7 @@ public class FromTextToBytesMessageTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:bar");
         mock.expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:header", "3");
+        template.sendBody("jms:queue:header", "3");
 
         assertMockEndpointsSatisfied();
 
@@ -63,7 +63,7 @@ public class FromTextToBytesMessageTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:bar");
         mock.expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:text", "Hello");
+        template.sendBody("jms:queue:text", "Hello");
 
         assertMockEndpointsSatisfied();
 
@@ -77,7 +77,7 @@ public class FromTextToBytesMessageTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -87,17 +87,17 @@ public class FromTextToBytesMessageTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo?jmsMessageType=Text")
-                    .to("activemq:queue:bar?jmsMessageType=Bytes");
+                from("jms:queue:foo?jmsMessageType=Text")
+                    .to("jms:queue:bar?jmsMessageType=Bytes");
 
-                from("activemq:queue:header?jmsMessageType=Text")
+                from("jms:queue:header?jmsMessageType=Text")
                     .setHeader("myHeader", constant("123"))
-                    .to("activemq:queue:bar?jmsMessageType=Bytes");
+                    .to("jms:queue:bar?jmsMessageType=Bytes");
 
-                from("activemq:queue:text?jmsMessageType=Text")
-                    .to("activemq:queue:bar?jmsMessageType=Text");
+                from("jms:queue:text?jmsMessageType=Text")
+                    .to("jms:queue:bar?jmsMessageType=Text");
 
-                from("activemq:queue:bar")
+                from("jms:queue:bar")
                     .to("mock:bar");
             }
         };

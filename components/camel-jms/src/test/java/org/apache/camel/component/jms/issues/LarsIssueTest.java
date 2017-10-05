@@ -23,9 +23,11 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +39,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  *
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class LarsIssueTest  extends CamelTestSupport {
     private static final Logger LOG = LoggerFactory.getLogger(LarsIssueTest.class);
 
@@ -47,8 +50,8 @@ public class LarsIssueTest  extends CamelTestSupport {
         String body2 = "Goodbye world!";
         endpoint.expectedBodiesReceived(body1, body2);
 
-        template.sendBody("activemq:queue:foo.bar", body1);
-        template.sendBody("activemq:queue:foo.bar", body2);
+        template.sendBody("jms:queue:foo.bar", body1);
+        template.sendBody("jms:queue:foo.bar", body2);
 
         assertMockEndpointsSatisfied();
     }
@@ -57,7 +60,7 @@ public class LarsIssueTest  extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -73,7 +76,7 @@ public class LarsIssueTest  extends CamelTestSupport {
 
                 // lets enable CACHE_CONSUMER so that the consumer stays around in JMX
                 // as the default due to the spring bug means we keep creating & closing consumers
-                from("activemq:queue:foo.bar?cacheLevelName=CACHE_CONSUMER")
+                from("jms:queue:foo.bar?cacheLevelName=CACHE_CONSUMER")
                         .process(myProcessor)
                         .to("mock:results");
             }

@@ -36,8 +36,8 @@ public class SpringJmsSelectorTest extends CamelSpringTestSupport {
         resultEndpoint.expectedBodiesReceived(expectedBody2);
         resultEndpoint.message(0).header("cheese").isEqualTo("y");
 
-        template.sendBodyAndHeader("activemq:test.a", expectedBody, "cheese", "x");
-        template.sendBodyAndHeader("activemq:test.a", expectedBody2, "cheese", "y");
+        template.sendBodyAndHeader("jms:test.a", expectedBody, "cheese", "x");
+        template.sendBodyAndHeader("jms:test.a", expectedBody2, "cheese", "y");
 
         resultEndpoint.assertIsSatisfied();
     }

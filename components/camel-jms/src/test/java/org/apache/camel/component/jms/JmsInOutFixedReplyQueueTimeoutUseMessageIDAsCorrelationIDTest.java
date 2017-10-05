@@ -29,10 +29,10 @@ public class JmsInOutFixedReplyQueueTimeoutUseMessageIDAsCorrelationIDTest exten
         return new RouteBuilder() {
             public void configure() throws Exception {
                 from("direct:start")
-                        .inOut("activemq:queue:foo?replyTo=queue:bar&useMessageIDAsCorrelationID=true&requestTimeout=2000")
+                        .inOut("jms:queue:foo?replyTo=queue:bar&useMessageIDAsCorrelationID=true&requestTimeout=2000")
                         .to("mock:result");
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                         .process(new Processor() {
                             @Override
                             public void process(Exchange exchange) throws Exception {

@@ -25,8 +25,10 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
@@ -34,6 +36,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 /**
  * Concurrent consumer with JMSReply test.
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsConcurrentConsumersTest extends CamelTestSupport {
 
     @Test
@@ -50,7 +53,7 @@ public class JmsConcurrentConsumersTest extends CamelTestSupport {
             executor.execute(new Runnable() {
                 public void run() {
                     // request body is InOut pattern and thus we expect a reply (JMSReply)
-                    Object response = template.requestBody("activemq:a", "World #" + count);
+                    Object response = template.requestBody("jms:a", "World #" + count);
                     assertEquals("Bye World #" + count, response);
                     latch.countDown();
                 }
@@ -72,7 +75,7 @@ public class JmsConcurrentConsumersTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -80,9 +83,9 @@ public class JmsConcurrentConsumersTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:a?concurrentConsumers=3").to("activemq:b?concurrentConsumers=3");
+                from("jms:a?concurrentConsumers=3").to("jms:b?concurrentConsumers=3");
 
-                from("activemq:b?concurrentConsumers=3").process(new Processor() {
+                from("jms:b?concurrentConsumers=3").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         String body = exchange.getIn().getBody(String.class);
                         // sleep a little to simulate heavy work and force concurrency processing

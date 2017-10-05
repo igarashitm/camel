@@ -25,14 +25,17 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * A simple in only test that does not mutate the message
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsSimpleInOnlyNoMutateTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testRequestReplyNoMutate() throws Exception {
@@ -41,7 +44,7 @@ public class JmsSimpleInOnlyNoMutateTest extends CamelTestSupport {
         result.expectedBodiesReceived("Hello World");
         result.expectedHeaderReceived("foo", 123);
 
-        template.send("activemq:queue:hello", new Processor() {
+        template.send("jms:queue:hello", new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("Hello World");
                 exchange.getIn().setHeader("foo", 123);
@@ -63,7 +66,7 @@ public class JmsSimpleInOnlyNoMutateTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:hello").to("log:foo").to("mock:result");
+                from("jms:queue:hello").to("log:foo").to("mock:result");
             }
         };
     }

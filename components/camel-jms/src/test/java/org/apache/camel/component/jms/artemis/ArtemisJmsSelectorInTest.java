@@ -14,43 +14,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms;
+package org.apache.camel.component.jms.artemis;
 
 import javax.jms.ConnectionFactory;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.JmsComponent;
+import org.apache.camel.component.jms.JmsEndpoint;
+import org.apache.camel.component.jms.JmsQueueEndpoint;
+import org.apache.camel.component.jms.activemq.ActiveMQJmsSelectorInTest;
+import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
-@RunWith(MultipleJmsImplementations.class)
-public class JmsNoRequestTimeoutTest extends CamelTestSupport {
+/**
+ * @version 
+ */
+public class ArtemisJmsSelectorInTest extends ActiveMQJmsSelectorInTest {
 
-    protected String componentName = "jms";
-
-    @Test
-    public void testNoRequestTimeout() throws Exception {
-        String reply = template.requestBody("jms:queue:hello?requestTimeout=0", "Hello World", String.class);
-        assertEquals("Bye World", reply);
+    @Override
+    protected void assertQueueMessagesByBrowsing() {
+        // All messages match with selector has been consumed, therefore Artemis
+        // doesn't show any message via browser.
+        JmsQueueEndpoint endpoint = context.getEndpoint("jms:queue:foo", JmsQueueEndpoint.class);
+        assertEquals(0, endpoint.getExchanges().size());
     }
 
-    protected CamelContext createCamelContext() throws Exception {
-        CamelContext camelContext = super.createCamelContext();
-
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent(componentName, jmsComponentAutoAcknowledge(connectionFactory));
-
-        return camelContext;
+    @Override
+    protected ConnectionFactory doCreateConnectionFactory() {
+        return CamelJmsTestHelper.ARTEMIS.createConnectionFactory();
     }
 
-    protected RouteBuilder createRouteBuilder() throws Exception {
-        return new RouteBuilder() {
-            public void configure() throws Exception {
-                from("jms:queue:hello").transform(constant("Bye World"));
-            }
-        };
-    }
 }

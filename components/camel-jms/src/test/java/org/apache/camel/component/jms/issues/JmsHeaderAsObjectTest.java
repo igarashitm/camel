@@ -23,12 +23,15 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
+@RunWith(MultipleJmsImplementations.class)
 public class JmsHeaderAsObjectTest extends CamelTestSupport {
 
     @Test
@@ -41,7 +44,7 @@ public class JmsHeaderAsObjectTest extends CamelTestSupport {
         Map<String, Object> headers = new HashMap<String, Object>();
         headers.put("foo", "bar");
         headers.put("number", 23);
-        template.sendBodyAndHeaders("activemq:in", "Hello World", headers);
+        template.sendBodyAndHeaders("jms:in", "Hello World", headers);
 
         mock.assertIsSatisfied();
     }
@@ -61,7 +64,7 @@ public class JmsHeaderAsObjectTest extends CamelTestSupport {
         Map<String, Object> headers = new HashMap<String, Object>();
         headers.put("foo", "bar");
         headers.put("order", order);
-        template.sendBodyAndHeaders("activemq:in", "Hello World", headers);
+        template.sendBodyAndHeaders("jms:in", "Hello World", headers);
 
         mock.assertIsSatisfied();
     }
@@ -69,14 +72,14 @@ public class JmsHeaderAsObjectTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:in").to("mock:result");
+                from("jms:in").to("mock:result");
             }
         };
     }

@@ -21,8 +21,10 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
@@ -31,20 +33,21 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  *
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsJMSReplyToConsumerEndpointUsingInOutTest extends CamelTestSupport {
 
     @Test
     public void testCustomJMSReplyToInOut() throws Exception {
-        template.sendBody("activemq:queue:hello", "What is your name?");
+        template.sendBody("jms:queue:hello", "What is your name?");
 
-        String reply = consumer.receiveBody("activemq:queue:namedReplyQueue", 5000, String.class);
+        String reply = consumer.receiveBody("jms:queue:namedReplyQueue", 5000, String.class);
         assertEquals("My name is Camel", reply);
     }
 
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:hello?replyTo=queue:namedReplyQueue")
+                from("jms:queue:hello?replyTo=queue:namedReplyQueue")
                     .to("log:hello")
                     .transform(constant("My name is Camel"));
             }
@@ -54,7 +57,7 @@ public class JmsJMSReplyToConsumerEndpointUsingInOutTest extends CamelTestSuppor
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 

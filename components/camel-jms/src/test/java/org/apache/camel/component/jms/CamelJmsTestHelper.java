@@ -20,6 +20,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
 import org.apache.camel.component.jms.activemq.ActiveMqJmsTestHelper;
+import org.apache.camel.component.jms.artemis.ArtemisJmsTestHelper;
 
 /**
  * A helper for unit testing with embedded JMS broker.
@@ -27,6 +28,7 @@ import org.apache.camel.component.jms.activemq.ActiveMqJmsTestHelper;
 public final class CamelJmsTestHelper {
 
     public static final JmsTestHelper ACTIVEMQ = new ActiveMqJmsTestHelper();
+    public static final JmsTestHelper ARTEMIS = new ArtemisJmsTestHelper();
 
     private static final CamelJmsTestHelper INSTANCE = new CamelJmsTestHelper();
 

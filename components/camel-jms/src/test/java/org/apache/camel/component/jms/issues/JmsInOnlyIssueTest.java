@@ -24,15 +24,18 @@ import org.apache.camel.ExchangePattern;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOnlyIssueTest extends CamelTestSupport {
 
     @Test
@@ -40,7 +43,7 @@ public class JmsInOnlyIssueTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedBodiesReceived("Bye World");
 
-        template.sendBody("activemq:queue:in", "Hello World");
+        template.sendBody("jms:queue:in", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -53,7 +56,7 @@ public class JmsInOnlyIssueTest extends CamelTestSupport {
         // need a little sleep to let task exectuor be ready
         Thread.sleep(1000);
 
-        template.asyncSendBody("activemq:queue:in", "Hello World");
+        template.asyncSendBody("jms:queue:in", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -63,7 +66,7 @@ public class JmsInOnlyIssueTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedBodiesReceived("Bye World");
 
-        Exchange out = template.send("activemq:queue:in", ExchangePattern.InOnly, new Processor() {
+        Exchange out = template.send("jms:queue:in", ExchangePattern.InOnly, new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("Hello World");
             }
@@ -81,7 +84,7 @@ public class JmsInOnlyIssueTest extends CamelTestSupport {
         // need a little sleep to let task exectuor be ready
         Thread.sleep(1000);
 
-        template.asyncSend("activemq:queue:in", new Processor() {
+        template.asyncSend("jms:queue:in", new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.setPattern(ExchangePattern.InOnly);
                 exchange.getIn().setBody("Hello World");
@@ -94,14 +97,14 @@ public class JmsInOnlyIssueTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:in").process(new Processor() {
+                from("jms:queue:in").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         exchange.getIn().setBody("Bye World");
                     }

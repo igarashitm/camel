@@ -25,16 +25,18 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutDisableTimeToLiveTest extends CamelTestSupport {
 
-    private String urlTimeout = "activemq:queue.in?requestTimeout=2000";
-    private String urlTimeToLiveDisabled = "activemq:queue.in?requestTimeout=2000&disableTimeToLive=true";
+    private String urlTimeout = "jms:queue.in?requestTimeout=2000";
+    private String urlTimeToLiveDisabled = "jms:queue.in?requestTimeout=2000&disableTimeToLive=true";
 
     @Test
     public void testInOutExpired() throws Exception {
@@ -83,7 +85,7 @@ public class JmsInOutDisableTimeToLiveTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -98,7 +100,7 @@ public class JmsInOutDisableTimeToLiveTest extends CamelTestSupport {
                         .to(urlTimeToLiveDisabled)
                         .to("mock:result");
 
-                from("activemq:queue.out")
+                from("jms:queue.out")
                         .to("mock:end");
             }
         };
@@ -121,7 +123,7 @@ public class JmsInOutDisableTimeToLiveTest extends CamelTestSupport {
             // loop to empty queue
             while (true) {
                 // receive the message from the queue, wait at most 2 sec
-                String msg = consumer.receiveBody("activemq:queue.in", 2000, String.class);
+                String msg = consumer.receiveBody("jms:queue.in", 2000, String.class);
                 if (msg == null) {
                     // no more messages in queue
                     break;
@@ -131,7 +133,7 @@ public class JmsInOutDisableTimeToLiveTest extends CamelTestSupport {
                 msg = "Hello " + msg;
 
                 // send it to the next queue
-                producer.sendBodyAndHeader("activemq:queue.out", msg, "number", count++);
+                producer.sendBodyAndHeader("jms:queue.out", msg, "number", count++);
             }
         }
     }

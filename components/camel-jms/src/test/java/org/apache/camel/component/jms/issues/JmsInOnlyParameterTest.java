@@ -22,14 +22,17 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOnlyParameterTest extends CamelTestSupport {
 
     @Test
@@ -67,7 +70,7 @@ public class JmsInOnlyParameterTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -75,11 +78,11 @@ public class JmsInOnlyParameterTest extends CamelTestSupport {
         return new RouteBuilder() {
             public void configure() throws Exception {
                 from("direct:start")
-                    .to("activemq:queue:in?exchangePattern=InOnly")
+                    .to("jms:queue:in?exchangePattern=InOnly")
                     .transform().constant("Bye World")
                     .to("mock:result");
 
-                from("activemq:queue:in")
+                from("jms:queue:in")
                     .to("mock:in");
             }
         };

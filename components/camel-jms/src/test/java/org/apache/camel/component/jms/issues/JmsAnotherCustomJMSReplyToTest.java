@@ -26,10 +26,12 @@ import org.apache.camel.ExchangePattern;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.jms.core.JmsTemplate;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
@@ -37,16 +39,19 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsAnotherCustomJMSReplyToTest extends CamelTestSupport {
     private JmsComponent amq;
 
+    // TODO CAMEL-11238
+    @MultipleJmsImplementations.Option(ignore=MultipleJmsImplementations.Broker.Artemis)
     @Test
     public void testCustomJMSReplyToInOnly() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedBodiesReceived("My name is Arnio");
 
         // start a inOnly route
-        template.sendBody("activemq:queue:hello", "Hello, I'm here");
+        template.sendBody("jms:queue:hello", "Hello, I'm here");
 
         // now consume using something that is not Camel
         Thread.sleep(1000);
@@ -57,10 +62,11 @@ public class JmsAnotherCustomJMSReplyToTest extends CamelTestSupport {
 
         // there should be a JMSReplyTo so we know where to send the reply
         Destination replyTo = msg.getJMSReplyTo();
-        assertEquals("queue://nameReplyQueue", replyTo.toString());
+        assertNotNull(replyTo);
+        assertTrue(replyTo.toString().contains("nameReplyQueue"));
 
         // send reply
-        template.sendBody("activemq:" + replyTo.toString(), "My name is Arnio");
+        template.sendBody("jms:" + replyTo.toString(), "My name is Arnio");
 
         Thread.sleep(2000);
         assertMockEndpointsSatisfied();
@@ -71,7 +77,7 @@ public class JmsAnotherCustomJMSReplyToTest extends CamelTestSupport {
         return new RouteBuilder() {
 
             public void configure() throws Exception {
-                from("activemq:queue:hello")
+                from("jms:queue:hello")
                         .setExchangePattern(ExchangePattern.InOnly)
                         .process(new Processor() {
                             public void process(Exchange exchange) throws Exception {
@@ -79,9 +85,9 @@ public class JmsAnotherCustomJMSReplyToTest extends CamelTestSupport {
                                 exchange.getIn().setHeader("JMSReplyTo", "nameReplyQueue");
                             }
                         })
-                        .to("activemq:queue:nameRequestor?preserveMessageQos=true");
+                        .to("jms:queue:nameRequestor?preserveMessageQos=true");
 
-                from("activemq:queue:nameReplyQueue").to("mock:result");
+                from("jms:queue:nameReplyQueue").to("mock:result");
             }
         };
     }
@@ -90,9 +96,9 @@ public class JmsAnotherCustomJMSReplyToTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
-        amq = camelContext.getComponent("activemq", JmsComponent.class);
+        amq = camelContext.getComponent("jms", JmsComponent.class);
         return camelContext;
     }
 

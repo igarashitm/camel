@@ -22,11 +22,13 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutWithNoOutBodyTest extends CamelTestSupport {
 
     @Test
@@ -38,7 +40,7 @@ public class JmsInOutWithNoOutBodyTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -47,11 +49,11 @@ public class JmsInOutWithNoOutBodyTest extends CamelTestSupport {
             public void configure() throws Exception {
                 from("direct:start")
                     .to("log:before")
-                    .to("activemq:request")
+                    .to("jms:request")
                     .to("log:after")
                     .to("mock:result");
 
-                from("activemq:request")
+                from("jms:request")
                     .to("log:receivedRequest");
             }
         };

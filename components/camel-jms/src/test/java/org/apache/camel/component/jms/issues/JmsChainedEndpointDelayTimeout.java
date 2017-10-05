@@ -37,7 +37,7 @@ public class JmsChainedEndpointDelayTimeout extends CamelTestSupport {
     public void testTimeoutNotTriggeredTempQueue() throws Exception {
         getMockEndpoint("mock:exception").expectedMessageCount(0);
         getMockEndpoint("mock:ping").expectedMessageCount(1);
-        template.requestBody("activemq:test", "<hello />");
+        template.requestBody("jms:test", "<hello />");
         assertMockEndpointsSatisfied();
     }
     
@@ -45,14 +45,14 @@ public class JmsChainedEndpointDelayTimeout extends CamelTestSupport {
     public void testTimeoutNotTriggeredFixedQueue() throws Exception {
         getMockEndpoint("mock:exception").expectedMessageCount(0);
         getMockEndpoint("mock:ping").expectedMessageCount(1);
-        template.requestBody("activemq:testReplyFixedQueue", "<hello />");
+        template.requestBody("jms:testReplyFixedQueue", "<hello />");
         assertMockEndpointsSatisfied();
     }
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
     
@@ -66,15 +66,15 @@ public class JmsChainedEndpointDelayTimeout extends CamelTestSupport {
                     .handled(true)
                     .to("mock:exception");
 
-                from("activemq:test")
-                    .inOut("activemq:ping?requestTimeout=500")
+                from("jms:test")
+                    .inOut("jms:ping?requestTimeout=500")
                     .delay(constant(1000));
                 
-                from("activemq:testReplyFixedQueue")
-                    .inOut("activemq:ping?requestTimeout=500&replyToType=Exclusive&replyTo=reply")
+                from("jms:testReplyFixedQueue")
+                    .inOut("jms:ping?requestTimeout=500&replyToType=Exclusive&replyTo=reply")
                     .delay(constant(1000));
                 
-                from("activemq:ping")
+                from("jms:ping")
                     .to("mock:ping")
                     .log("pong");
 

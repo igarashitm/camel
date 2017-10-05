@@ -81,7 +81,7 @@ public class JmsBlockedAsyncRoutingEngineTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
         startBroker();
         ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(broker.getVmConnectorURI());
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -90,7 +90,7 @@ public class JmsBlockedAsyncRoutingEngineTest extends CamelTestSupport {
         // 0. This message takes 2000ms to ACK from the broker due to the DelayerBrokerPlugin
         // Until then, the correlation ID doesn't get updated locally
         try {
-            template.asyncRequestBody("activemq:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "hello");
+            template.asyncRequestBody("jms:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "hello");
         } catch (Exception ignored) {
             // ignored
         }
@@ -99,11 +99,11 @@ public class JmsBlockedAsyncRoutingEngineTest extends CamelTestSupport {
         Thread.sleep(3000);
 
         // 2. We send 5 messages that take 2 seconds so that they time out
-        template.asyncCallbackRequestBody("activemq:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "beSlow", callback);
-        template.asyncCallbackRequestBody("activemq:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "beSlow", callback);
-        template.asyncCallbackRequestBody("activemq:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "beSlow", callback);
-        template.asyncCallbackRequestBody("activemq:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "beSlow", callback);
-        template.asyncCallbackRequestBody("activemq:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "beSlow", callback);
+        template.asyncCallbackRequestBody("jms:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "beSlow", callback);
+        template.asyncCallbackRequestBody("jms:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "beSlow", callback);
+        template.asyncCallbackRequestBody("jms:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "beSlow", callback);
+        template.asyncCallbackRequestBody("jms:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "beSlow", callback);
+        template.asyncCallbackRequestBody("jms:queue:test?requestTimeout=500&useMessageIDAsCorrelationID=true", "beSlow", callback);
 
         // 3. We assert that we were notified of all timeout exceptions
         assertTrue(latch.await(3000, TimeUnit.MILLISECONDS));
@@ -119,7 +119,7 @@ public class JmsBlockedAsyncRoutingEngineTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:test?concurrentConsumers=5&useMessageIDAsCorrelationID=true&transacted=true")
+                from("jms:queue:test?concurrentConsumers=5&useMessageIDAsCorrelationID=true&transacted=true")
                     .filter().simple("${in.body} == 'beSlow'")
                         .delay(constant(2000))
                     .log(">>>>> Received message on test queue")

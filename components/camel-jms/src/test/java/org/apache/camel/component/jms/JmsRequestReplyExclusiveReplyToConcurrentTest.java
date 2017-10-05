@@ -27,12 +27,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.camel.util.StopWatch;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplyExclusiveReplyToConcurrentTest extends CamelTestSupport {
 
     private final int size = 100;
@@ -73,7 +75,7 @@ public class JmsRequestReplyExclusiveReplyToConcurrentTest extends CamelTestSupp
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -83,11 +85,11 @@ public class JmsRequestReplyExclusiveReplyToConcurrentTest extends CamelTestSupp
             @Override
             public void configure() throws Exception {
                 from("direct:start")
-                    .to("activemq:queue:foo?replyTo=bar&replyToType=Exclusive&concurrentConsumers=5&maxConcurrentConsumers=10&maxMessagesPerTask=100")
+                    .to("jms:queue:foo?replyTo=bar&replyToType=Exclusive&concurrentConsumers=5&maxConcurrentConsumers=10&maxMessagesPerTask=100")
                     .to("log:reply")
                     .to("mock:reply");
 
-                from("activemq:queue:foo?concurrentConsumers=5&maxConcurrentConsumers=10&maxMessagesPerTask=100")
+                from("jms:queue:foo?concurrentConsumers=5&maxConcurrentConsumers=10&maxMessagesPerTask=100")
                     .transform(body().prepend("Hello "));
             }
         };

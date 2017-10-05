@@ -27,15 +27,17 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsMessageCreatedStrategyComponentTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testMessageCreatedStrategy() throws Exception {
@@ -43,7 +45,7 @@ public class JmsMessageCreatedStrategyComponentTest extends CamelTestSupport {
         mock.expectedMessageCount(1);
         mock.expectedHeaderReceived("beer", "Carlsberg");
 
-        template.sendBody("activemq:queue:foo", "Hello World");
+        template.sendBody("jms:queue:foo", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -65,7 +67,7 @@ public class JmsMessageCreatedStrategyComponentTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                         .to("mock:result");
             }
         };

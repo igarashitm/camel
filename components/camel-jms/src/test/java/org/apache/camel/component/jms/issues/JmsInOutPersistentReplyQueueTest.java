@@ -21,14 +21,17 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutPersistentReplyQueueTest extends CamelTestSupport {
 
     @Test
@@ -46,7 +49,7 @@ public class JmsInOutPersistentReplyQueueTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -55,14 +58,14 @@ public class JmsInOutPersistentReplyQueueTest extends CamelTestSupport {
             public void configure() throws Exception {
                 from("seda:start")
                     .log("Sending ${body}")
-                    .inOut("activemq:queue:foo?replyTo=myReplies")
+                    .inOut("jms:queue:foo?replyTo=myReplies")
                     // process the remainder of the route concurrently
                     .threads(5)
                     .log("Reply ${body}")
                     .delay(2000)
                     .to("mock:result");
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .to("mock:foo")
                     .transform(body().prepend("Bye "))
                     .log("Sending back reply ${body}");

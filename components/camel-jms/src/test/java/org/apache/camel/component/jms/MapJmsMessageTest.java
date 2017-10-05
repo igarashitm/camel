@@ -25,18 +25,21 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class MapJmsMessageTest extends CamelTestSupport {
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -47,7 +50,7 @@ public class MapJmsMessageTest extends CamelTestSupport {
         mock.expectedMessageCount(1);
         mock.message(0).body().isInstanceOf(TextMessage.class);
 
-        template.sendBody("activemq:queue:hello", "Hello World");
+        template.sendBody("jms:queue:hello", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -58,7 +61,7 @@ public class MapJmsMessageTest extends CamelTestSupport {
         mock.expectedMessageCount(1);
         mock.message(0).body().isInstanceOf(BytesMessage.class);
 
-        template.sendBody("activemq:queue:hello", "Hello World".getBytes());
+        template.sendBody("jms:queue:hello", "Hello World".getBytes());
 
         assertMockEndpointsSatisfied();
     }
@@ -66,7 +69,7 @@ public class MapJmsMessageTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:hello?mapJmsMessage=false").to("mock:result");
+                from("jms:queue:hello?mapJmsMessage=false").to("mock:result");
             }
         };
     }

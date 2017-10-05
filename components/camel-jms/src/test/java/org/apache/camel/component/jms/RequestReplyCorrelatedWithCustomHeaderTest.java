@@ -25,9 +25,11 @@ import org.apache.camel.Header;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
+@RunWith(MultipleJmsImplementations.class)
 public class RequestReplyCorrelatedWithCustomHeaderTest extends CamelTestSupport {
 
     private ConnectionFactory connectionFactory;
@@ -42,7 +44,7 @@ public class RequestReplyCorrelatedWithCustomHeaderTest extends CamelTestSupport
 
     @Test
     public void shouldCorrelateRepliesWithCustomCorrelationProperty() throws Exception {
-        final String reply = template.requestBody("activemq:queue:request",
+        final String reply = template.requestBody("jms:queue:request",
                 "Bobby", String.class);
 
         assertTrue(reply.matches("Hi, Bobby, Camel-.*"));
@@ -51,7 +53,7 @@ public class RequestReplyCorrelatedWithCustomHeaderTest extends CamelTestSupport
     @Test
     public void shouldCorrelateRepliesWithCustomCorrelationPropertyAndValue() throws Exception {
         final String reply = template.requestBodyAndHeader(
-                "activemq:queue:request", "Bobby", "CustomCorrelation",
+                "jms:queue:request", "Bobby", "CustomCorrelation",
                 "custom-id", String.class);
 
         assertEquals("Hi, Bobby, custom-id", reply);
@@ -63,10 +65,10 @@ public class RequestReplyCorrelatedWithCustomHeaderTest extends CamelTestSupport
 
         connectionFactory = CamelJmsTestHelper.createConnectionFactory();
 
-        final JmsComponent activeMq = jmsComponentAutoAcknowledge(connectionFactory);
-        activeMq.getConfiguration().setCorrelationProperty("CustomCorrelation");
+        final JmsComponent jms = jmsComponentAutoAcknowledge(connectionFactory);
+        jms.getConfiguration().setCorrelationProperty("CustomCorrelation");
 
-        camelContext.addComponent("activemq", activeMq);
+        camelContext.addComponent("jms", jms);
 
         return camelContext;
     }
@@ -76,7 +78,7 @@ public class RequestReplyCorrelatedWithCustomHeaderTest extends CamelTestSupport
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:request").bean(RequestReplyCorrelatedWithCustomHeaderTest.class, "processRequest");
+                from("jms:queue:request").bean(RequestReplyCorrelatedWithCustomHeaderTest.class, "processRequest");
             }
         };
     }

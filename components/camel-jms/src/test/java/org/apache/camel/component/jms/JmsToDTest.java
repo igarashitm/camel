@@ -22,12 +22,14 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsToDTest extends CamelTestSupport {
 
     @Test
@@ -45,7 +47,7 @@ public class JmsToDTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -56,10 +58,10 @@ public class JmsToDTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 // route message dynamic using toD
-                from("direct:start").toD("activemq:queue:${header.where}");
+                from("direct:start").toD("jms:queue:${header.where}");
 
-                from("activemq:queue:bar").to("mock:bar");
-                from("activemq:queue:beer").to("mock:beer");
+                from("jms:queue:bar").to("mock:bar");
+                from("jms:queue:beer").to("mock:beer");
             }
         };
     }

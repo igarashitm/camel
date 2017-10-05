@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms.issues;
+package org.apache.camel.component.jms.activemq.issues;
 
 import javax.jms.ConnectionFactory;
 
@@ -23,21 +23,23 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
-public class JmsInOutExclusiveTopicTest extends CamelTestSupport {
+public class JmsInOutExclusiveTopicRecipientListTest extends CamelTestSupport {
 
     @Test
     public void testJmsInOutExclusiveTopicTest() throws Exception {
         getMockEndpoint("mock:result").expectedBodiesReceived("Bye Camel");
 
-        String out = template.requestBody("direct:start", "Camel", String.class);
+        String out = template.requestBodyAndHeader("direct:start", "Camel", "whereTo", "jms:topic:news?replyToType=Exclusive&replyTo=queue:back", String.class);
         assertEquals("Bye Camel", out);
 
         assertMockEndpointsSatisfied();
@@ -45,8 +47,8 @@ public class JmsInOutExclusiveTopicTest extends CamelTestSupport {
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        ConnectionFactory connectionFactory = CamelJmsTestHelper.ACTIVEMQ.createConnectionFactory();
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -54,10 +56,10 @@ public class JmsInOutExclusiveTopicTest extends CamelTestSupport {
         return new RouteBuilder() {
             public void configure() throws Exception {
                 from("direct:start")
-                    .to("activemq:topic:news?replyToType=Exclusive&replyTo=queue:back")
+                    .recipientList().header("whereTo")
                     .to("mock:result");
 
-                from("activemq:topic:news?disableReplyTo=true")
+                from("jms:topic:news?disableReplyTo=true")
                         .transform(body().prepend("Bye "))
                         .process(new Processor() {
                             @Override
@@ -71,7 +73,7 @@ public class JmsInOutExclusiveTopicTest extends CamelTestSupport {
                                     // wait a bit before sending back
                                     Thread.sleep(1000);
                                     log.info("Sending back reply message on {}", replyTo);
-                                    template.sendBodyAndHeader("activemq:" + replyTo, exchange.getIn().getBody(), "JMSCorrelationID", cid);
+                                    template.sendBodyAndHeader("jms:" + replyTo, exchange.getIn().getBody(), "JMSCorrelationID", cid);
                                 }
                             }
                         });

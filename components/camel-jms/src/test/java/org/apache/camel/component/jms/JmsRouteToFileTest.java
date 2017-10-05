@@ -26,15 +26,17 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.converter.IOConverter;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test that we can consume JMS message and store it as file (to avoid regression bug)
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRouteToFileTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testRouteToFile() throws Exception {
@@ -43,7 +45,7 @@ public class JmsRouteToFileTest extends CamelTestSupport {
         
         deleteDirectory("target/routetofile");
 
-        template.sendBody("activemq:queue:hello", "Hello World");
+        template.sendBody("jms:queue:hello", "Hello World");
 
         // pause to let file producer save the file
         result.assertIsSatisfied();
@@ -70,8 +72,8 @@ public class JmsRouteToFileTest extends CamelTestSupport {
         return new RouteBuilder() {
             public void configure() throws Exception {
                 // using mock endpoint here purely for testing. You would normally write this route as
-                // from("activemq:queue:hello").to("file://target/routetofile");
-                from("activemq:queue:hello").to("file://target/routetofile").to("mock:result");
+                // from("jms:queue:hello").to("file://target/routetofile");
+                from("jms:queue:hello").to("file://target/routetofile").to("mock:result");
             }
         };
     }

@@ -31,6 +31,7 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 /**
  * A simple request / late reply test.
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsSimpleRequestLateReplyTest extends CamelTestSupport {
 
     private static final Logger LOG = LoggerFactory.getLogger(JmsSimpleRequestLateReplyTest.class);
@@ -85,7 +87,7 @@ public class JmsSimpleRequestLateReplyTest extends CamelTestSupport {
             Map<String, Object> headers = new HashMap<String, Object>();
             headers.put(JmsConstants.JMS_DESTINATION, replyDestination);
             headers.put("JMSCorrelationID", cid);
-            template.sendBodyAndHeaders("activemq:dummy", expectedBody, headers);
+            template.sendBodyAndHeaders("jms:dummy", expectedBody, headers);
         }
     }
 
@@ -93,8 +95,8 @@ public class JmsSimpleRequestLateReplyTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
-        activeMQComponent = camelContext.getComponent("activemq", JmsComponent.class);
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
+        activeMQComponent = camelContext.getComponent("jms", JmsComponent.class);
         // as this is a unit test I dont want to wait 20 sec before timeout occurs, so we use 10
         activeMQComponent.getConfiguration().setRequestTimeout(10000);
 
@@ -132,6 +134,6 @@ public class JmsSimpleRequestLateReplyTest extends CamelTestSupport {
 
     protected static String getQueueEndpointName() {
         // need to use a fixed queue for reply as a temp queue may be deleted
-        return "activemq:queue:hello.queue?replyTo=myReplyQueue";
+        return "jms:queue:hello.queue?replyTo=myReplyQueue";
     }
 }

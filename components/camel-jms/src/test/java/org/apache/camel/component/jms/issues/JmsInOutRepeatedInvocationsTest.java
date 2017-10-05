@@ -21,15 +21,18 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutRepeatedInvocationsTest extends CamelTestSupport {
 
     @Test
@@ -45,7 +48,7 @@ public class JmsInOutRepeatedInvocationsTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -54,12 +57,12 @@ public class JmsInOutRepeatedInvocationsTest extends CamelTestSupport {
             public void configure() throws Exception {
             
                 from("direct:test")
-                    .inOut("activemq:queue:test1?requestTimeout=200")
-                    .inOut("activemq:queue:test1?requestTimeout=200")
-                    .inOut("activemq:queue:test1?requestTimeout=200")
+                    .inOut("jms:queue:test1?requestTimeout=200")
+                    .inOut("jms:queue:test1?requestTimeout=200")
+                    .inOut("jms:queue:test1?requestTimeout=200")
                     .to("mock:finished");
                 
-                from("activemq:queue:test1")
+                from("jms:queue:test1")
                     .log("Received on queue test1")
                     .setBody().constant("Some reply");
                 

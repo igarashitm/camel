@@ -23,39 +23,42 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutUseMessageIDasCorrelationIDTest extends CamelTestSupport {
 
     @Test
     public void testInOutWithMsgIdAsCorrId() throws Exception {
-        String reply = template.requestBody("activemq:queue:in?useMessageIDAsCorrelationID=true", "Hello World", String.class);
+        String reply = template.requestBody("jms:queue:in?useMessageIDAsCorrelationID=true", "Hello World", String.class);
         assertEquals("Bye World", reply);
     }
 
     @Test
     public void testInOutFixedReplyToAndWithMsgIdAsCorrId() throws Exception {
-        String reply = template.requestBody("activemq:queue:in?replyTo=bar&useMessageIDAsCorrelationID=true", "Hello World", String.class);
+        String reply = template.requestBody("jms:queue:in?replyTo=bar&useMessageIDAsCorrelationID=true", "Hello World", String.class);
         assertEquals("Bye World", reply);
     }
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:in?useMessageIDAsCorrelationID=true").process(new Processor() {
+                from("jms:queue:in?useMessageIDAsCorrelationID=true").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         String id = exchange.getIn().getHeader("JMSCorrelationID", String.class);
                         assertNull("JMSCorrelationID should be null", id);

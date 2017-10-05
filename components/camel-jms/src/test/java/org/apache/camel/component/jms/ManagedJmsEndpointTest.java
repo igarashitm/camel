@@ -25,12 +25,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class ManagedJmsEndpointTest extends CamelTestSupport {
 
     @Override
@@ -42,7 +44,7 @@ public class ManagedJmsEndpointTest extends CamelTestSupport {
         CamelContext context = new DefaultCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createPersistentConnectionFactory();
-        context.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        context.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return context;
     }
@@ -55,9 +57,9 @@ public class ManagedJmsEndpointTest extends CamelTestSupport {
     public void testJmsEndpoint() throws Exception {
         MBeanServer mbeanServer = getMBeanServer();
 
-        ObjectName name = ObjectName.getInstance("org.apache.camel:context=camel-1,type=endpoints,name=\"activemq://queue:start\"");
+        ObjectName name = ObjectName.getInstance("org.apache.camel:context=" + context.getName() + ",type=endpoints,name=\"jms://queue:start\"");
         String uri = (String) mbeanServer.getAttribute(name, "EndpointUri");
-        assertEquals("activemq://queue:start", uri);
+        assertEquals("jms://queue:start", uri);
 
         Boolean singleton = (Boolean) mbeanServer.getAttribute(name, "Singleton");
         assertTrue(singleton.booleanValue());
@@ -70,8 +72,8 @@ public class ManagedJmsEndpointTest extends CamelTestSupport {
 
         getMockEndpoint("mock:result").expectedMessageCount(2);
 
-        template.sendBody("activemq:queue:start", "Hello World");
-        template.sendBody("activemq:queue:start", "Bye World");
+        template.sendBody("jms:queue:start", "Hello World");
+        template.sendBody("jms:queue:start", "Bye World");
 
         assertMockEndpointsSatisfied();
 
@@ -79,7 +81,7 @@ public class ManagedJmsEndpointTest extends CamelTestSupport {
         context.stopRoute("foo");
 
         // send a message to queue
-        template.sendBody("activemq:queue:start", "Hi World");
+        template.sendBody("jms:queue:start", "Hi World");
 
         size = (Long) mbeanServer.invoke(name, "queueSize", null, null);
         assertEquals(1, size.intValue());
@@ -93,7 +95,7 @@ public class ManagedJmsEndpointTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:start").routeId("foo").to("log:foo").to("mock:result");
+                from("jms:queue:start").routeId("foo").to("log:foo").to("mock:result");
             }
         };
     }

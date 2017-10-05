@@ -39,7 +39,7 @@ public class TransactionErrorHandlerRedeliveryDelayTest extends CamelSpringTestS
     public void testTransactedRedeliveryDelay() throws Exception {
         getMockEndpoint("mock:result").expectedBodiesReceived("Bye World");
 
-        template.sendBody("activemq:queue:in", "Hello World");
+        template.sendBody("jms:queue:in", "Hello World");
 
         assertMockEndpointsSatisfied();
     }

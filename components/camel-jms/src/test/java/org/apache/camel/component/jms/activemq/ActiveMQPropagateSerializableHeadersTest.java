@@ -65,7 +65,7 @@ public class ActiveMQPropagateSerializableHeadersTest extends CamelTestSupport {
         firstMessageExpectations.header("myCal").isEqualTo(calValue);
         firstMessageExpectations.header("myMap").isEqualTo(mapValue);
 
-        template.sendBody("activemq:test.a", expectedBody);
+        template.sendBody("jms:test.a", expectedBody);
 
         resultEndpoint.assertIsSatisfied();
 
@@ -92,7 +92,7 @@ public class ActiveMQPropagateSerializableHeadersTest extends CamelTestSupport {
 
         // START SNIPPET: example
         ConnectionFactory connectionFactory = CamelJmsTestHelper.ACTIVEMQ.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         // END SNIPPET: example
 
         return camelContext;
@@ -103,7 +103,7 @@ public class ActiveMQPropagateSerializableHeadersTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:test.a").process(new Processor() {
+                from("jms:test.a").process(new Processor() {
                     @Override
                     public void process(Exchange exchange) throws Exception {
                         // set the JMS headers
@@ -112,9 +112,9 @@ public class ActiveMQPropagateSerializableHeadersTest extends CamelTestSupport {
                         in.setHeader("myMap", mapValue);
                         in.setHeader("myCal", calValue);
                     }
-                }).to("activemq:test.b?transferExchange=true&allowSerializedHeaders=true");
+                }).to("jms:test.b?transferExchange=true&allowSerializedHeaders=true");
 
-                from("activemq:test.b").to("mock:result");
+                from("jms:test.b").to("mock:result");
             }
         };
     }

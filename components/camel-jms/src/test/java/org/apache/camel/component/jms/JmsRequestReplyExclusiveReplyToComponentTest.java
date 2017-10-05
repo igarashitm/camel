@@ -23,6 +23,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.camel.util.StopWatch;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
@@ -32,17 +33,18 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  *
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplyExclusiveReplyToComponentTest extends CamelTestSupport {
 
     @Test
     public void testJmsRequestReplyExclusiveFixedReplyTo() throws Exception {
         StopWatch watch = new StopWatch();
 
-        assertEquals("Hello A", template.requestBody("activemq:queue:foo?replyTo=bar", "A"));
-        assertEquals("Hello B", template.requestBody("activemq:queue:foo?replyTo=bar", "B"));
-        assertEquals("Hello C", template.requestBody("activemq:queue:foo?replyTo=bar", "C"));
-        assertEquals("Hello D", template.requestBody("activemq:queue:foo?replyTo=bar", "D"));
-        assertEquals("Hello E", template.requestBody("activemq:queue:foo?replyTo=bar", "E"));
+        assertEquals("Hello A", template.requestBody("jms:queue:foo?replyTo=bar", "A"));
+        assertEquals("Hello B", template.requestBody("jms:queue:foo?replyTo=bar", "B"));
+        assertEquals("Hello C", template.requestBody("jms:queue:foo?replyTo=bar", "C"));
+        assertEquals("Hello D", template.requestBody("jms:queue:foo?replyTo=bar", "D"));
+        assertEquals("Hello E", template.requestBody("jms:queue:foo?replyTo=bar", "E"));
 
         long delta = watch.stop();
         assertTrue("Should be faster than about 4 seconds, was: " + delta, delta < 4200);
@@ -54,7 +56,7 @@ public class JmsRequestReplyExclusiveReplyToComponentTest extends CamelTestSuppo
         // mark the reply to type as exclusive on the component
         JmsComponent jms = jmsComponentAutoAcknowledge(connectionFactory);
         jms.setReplyToType(ReplyToType.Exclusive);
-        camelContext.addComponent("activemq", jms);
+        camelContext.addComponent("jms", jms);
         return camelContext;
     }
 
@@ -63,7 +65,7 @@ public class JmsRequestReplyExclusiveReplyToComponentTest extends CamelTestSuppo
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .transform(body().prepend("Hello "));
             }
         };

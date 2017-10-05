@@ -24,12 +24,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsSuspendResumeTest extends CamelTestSupport {
 
     @Test
@@ -37,7 +39,7 @@ public class JmsSuspendResumeTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:foo");
         mock.expectedBodiesReceived("Hello World");
 
-        template.sendBody("activemq:queue:foo", "Hello World");
+        template.sendBody("jms:queue:foo", "Hello World");
 
         assertMockEndpointsSatisfied();
 
@@ -49,7 +51,7 @@ public class JmsSuspendResumeTest extends CamelTestSupport {
         // sleep a bit to ensure its properly suspended
         Thread.sleep(2000);
 
-        template.sendBody("activemq:queue:foo", "Bye World");
+        template.sendBody("jms:queue:foo", "Bye World");
 
         assertMockEndpointsSatisfied(1, TimeUnit.SECONDS);
 
@@ -66,7 +68,7 @@ public class JmsSuspendResumeTest extends CamelTestSupport {
 
         // must use persistent so the message is not lost
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createPersistentConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -74,7 +76,7 @@ public class JmsSuspendResumeTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:foo").routeId("foo").to("mock:foo");
+                from("jms:queue:foo").routeId("foo").to("mock:foo");
             }
         };
     }

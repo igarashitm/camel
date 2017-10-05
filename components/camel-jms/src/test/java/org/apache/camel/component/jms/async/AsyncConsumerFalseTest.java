@@ -21,14 +21,17 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class AsyncConsumerFalseTest extends CamelTestSupport {
 
     @Test
@@ -36,8 +39,8 @@ public class AsyncConsumerFalseTest extends CamelTestSupport {
         // async is disabled (so we should receive in same order)
         getMockEndpoint("mock:result").expectedBodiesReceived("Camel", "Hello World");
 
-        template.sendBody("activemq:queue:start", "Hello Camel");
-        template.sendBody("activemq:queue:start", "Hello World");
+        template.sendBody("jms:queue:start", "Hello Camel");
+        template.sendBody("jms:queue:start", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -48,7 +51,7 @@ public class AsyncConsumerFalseTest extends CamelTestSupport {
         camelContext.addComponent("async", new MyAsyncComponent());
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -59,7 +62,7 @@ public class AsyncConsumerFalseTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 // disable async in only mode on the consumer
-                from("activemq:queue:start?asyncConsumer=false")
+                from("jms:queue:start?asyncConsumer=false")
                         .choice()
                             .when(body().contains("Camel"))
                             .to("async:camel?delay=2000")

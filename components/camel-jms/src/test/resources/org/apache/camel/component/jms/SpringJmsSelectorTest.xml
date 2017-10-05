@@ -27,16 +27,16 @@
     <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
         <jmxAgent id="agent" disabled="true"/>
         <route>
-            <from uri="activemq:test.a"/>
-            <to uri="activemq:test.b"/>
+            <from uri="jms:test.a"/>
+            <to uri="jms:test.b"/>
         </route>
         <route>
-            <from uri="activemq:test.b?selector=cheese='y'"/>
+            <from uri="jms:test.b?selector=cheese='y'"/>
             <to uri="mock:result"/>
         </route>
     </camelContext>
 
-    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
         <property name="connectionFactory">
             <bean class="org.apache.activemq.ActiveMQConnectionFactory">
                 <property name="brokerURL" value="vm://localhost?broker.persistent=false&amp;broker.useJmx=false"/>

@@ -33,7 +33,7 @@ public class SpringJmsXPathHeaderTest extends CamelSpringTestSupport {
         getMockEndpoint("mock:true").expectedMessageCount(1);
         getMockEndpoint("mock:other").expectedMessageCount(0);
 
-        template.sendBodyAndHeader("activemq:queue:in", "<hello>World</hello>", "foo", "true");
+        template.sendBodyAndHeader("jms:queue:in", "<hello>World</hello>", "foo", "true");
 
         assertMockEndpointsSatisfied();
     }
@@ -43,7 +43,7 @@ public class SpringJmsXPathHeaderTest extends CamelSpringTestSupport {
         getMockEndpoint("mock:true").expectedMessageCount(0);
         getMockEndpoint("mock:other").expectedMessageCount(1);
 
-        template.sendBodyAndHeader("activemq:queue:in", "<hello>World</hello>", "foo", "false");
+        template.sendBodyAndHeader("jms:queue:in", "<hello>World</hello>", "foo", "false");
 
         assertMockEndpointsSatisfied();
     }
@@ -53,7 +53,7 @@ public class SpringJmsXPathHeaderTest extends CamelSpringTestSupport {
         getMockEndpoint("mock:true").expectedMessageCount(0);
         getMockEndpoint("mock:other").expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:in", "<hello>World</hello>");
+        template.sendBody("jms:queue:in", "<hello>World</hello>");
 
         assertMockEndpointsSatisfied();
     }

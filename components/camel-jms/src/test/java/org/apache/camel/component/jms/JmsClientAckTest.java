@@ -33,14 +33,14 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentClientAckn
 @RunWith(MultipleJmsImplementations.class)
 public class JmsClientAckTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testJmsClientAck() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:foo", "Hello World");
+        template.sendBody("jms:queue:foo", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -60,7 +60,7 @@ public class JmsClientAckTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                         .process(new Processor() {
                             @Override
                             public void process(Exchange exchange) throws Exception {

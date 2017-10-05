@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms.activemq;
+package org.apache.camel.component.jms;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jms.ConnectionFactory;
 
-import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
@@ -38,9 +37,7 @@ import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.jms.CamelJmsTestHelper;
 import org.apache.camel.component.jms.JmsComponent;
-import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -54,8 +51,8 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 public class JmsRouteRequestReplyTest extends CamelTestSupport {
 
     protected static final String REPLY_TO_DESTINATION_SELECTOR_NAME = "camelProducer";
-    protected static String componentName = "amq";
-    protected static String componentName1 = "amq1";
+    protected static String componentName = "jms";
+    protected static String componentName1 = "jms1";
     protected static String endpointUriA = componentName + ":queue:test.a";
     protected static String endpointUriB = componentName + ":queue:test.b";
     protected static String endpointUriB1 = componentName1 + ":queue:test.b";
@@ -172,7 +169,7 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
                 public CamelContext buildContext(CamelContext context) throws Exception {
                     ConnectionFactory connectionFactory =
                         CamelJmsTestHelper.createConnectionFactory();
-                    ActiveMQComponent jmsComponent = ActiveMQComponent.activeMQComponent();
+                    JmsComponent jmsComponent = new JmsComponent();
                     jmsComponent.setConnectionFactory(connectionFactory);
                     jmsComponent.setUseMessageIDAsCorrelationID(false);
                     jmsComponent.setConcurrentConsumers(maxServerTasks);
@@ -186,7 +183,7 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
                 public CamelContext buildContext(CamelContext context) throws Exception {
                     ConnectionFactory connectionFactory =
                         CamelJmsTestHelper.createConnectionFactory();
-                    ActiveMQComponent jmsComponent = ActiveMQComponent.activeMQComponent();
+                    JmsComponent jmsComponent = new JmsComponent();
                     jmsComponent.setConnectionFactory(connectionFactory);
                     jmsComponent.setUseMessageIDAsCorrelationID(true);
                     jmsComponent.setConcurrentConsumers(maxServerTasks);
@@ -201,7 +198,7 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
                 public CamelContext buildContext(CamelContext context) throws Exception {
                     ConnectionFactory connectionFactory =
                         CamelJmsTestHelper.createConnectionFactory();
-                    ActiveMQComponent jmsComponent = ActiveMQComponent.activeMQComponent();
+                    JmsComponent jmsComponent = new JmsComponent();
                     jmsComponent.setConnectionFactory(connectionFactory);
                     jmsComponent.setUseMessageIDAsCorrelationID(false);
                     jmsComponent.setConcurrentConsumers(maxServerTasks);
@@ -217,12 +214,12 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
                 public CamelContext buildContext(CamelContext context) throws Exception {
                     ConnectionFactory connectionFactory =
                         CamelJmsTestHelper.createConnectionFactory();
-                    ActiveMQComponent jmsComponent = ActiveMQComponent.activeMQComponent();
+                    JmsComponent jmsComponent = new JmsComponent();
                     jmsComponent.setConnectionFactory(connectionFactory);
                     jmsComponent.setConcurrentConsumers(maxServerTasks);
                     context.addComponent(componentName, jmsComponent);
 
-                    ActiveMQComponent jmsComponent1 = ActiveMQComponent.activeMQComponent();
+                    JmsComponent jmsComponent1 = new JmsComponent();
                     jmsComponent1.setConnectionFactory(connectionFactory);
                     jmsComponent1.setUseMessageIDAsCorrelationID(false);
                     jmsComponent1.setConcurrentConsumers(maxServerTasks);
@@ -236,13 +233,13 @@ public class JmsRouteRequestReplyTest extends CamelTestSupport {
                 public CamelContext buildContext(CamelContext context) throws Exception {
                     ConnectionFactory connectionFactory =
                         CamelJmsTestHelper.createConnectionFactory();
-                    ActiveMQComponent jmsComponent = ActiveMQComponent.activeMQComponent();
+                    JmsComponent jmsComponent = new JmsComponent();
                     jmsComponent.setConnectionFactory(connectionFactory);
                     jmsComponent.setUseMessageIDAsCorrelationID(true);
                     jmsComponent.setConcurrentConsumers(maxServerTasks);
                     context.addComponent(componentName, jmsComponent);
 
-                    ActiveMQComponent jmsComponent1 = ActiveMQComponent.activeMQComponent();
+                    JmsComponent jmsComponent1 = new JmsComponent();
                     jmsComponent1.setConnectionFactory(connectionFactory);
                     jmsComponent1.setUseMessageIDAsCorrelationID(true);
                     jmsComponent1.setConcurrentConsumers(maxServerTasks);

@@ -18,6 +18,9 @@ package org.apache.camel.component.jms.activemq;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,8 +33,12 @@ import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.jms.pool.PooledConnectionFactory;
 import org.apache.camel.component.jms.JmsTestHelper;
 import org.apache.camel.util.FileUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class ActiveMqJmsTestHelper implements JmsTestHelper {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ActiveMqJmsTestHelper.class);
 
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
@@ -120,7 +127,14 @@ public final class ActiveMqJmsTestHelper implements JmsTestHelper {
 
     @Override
     public void shutdown() {
-        persistedDirectories.forEach(File::delete);
+        for (File dir : persistedDirectories) {
+            try {
+                Files.walk(dir.toPath()).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+            } catch (Exception e) {
+                LOG.warn(e.getMessage());
+            }
+        }
+        persistedDirectories.clear();
     }
 
     static String brokerIdentifier() {

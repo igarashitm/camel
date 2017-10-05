@@ -66,7 +66,7 @@ public class JMSTransactionIsTransactedRedeliveredTest extends CamelSpringTestSu
         // success at 3rd attempt
         mock.message(0).header("count").isEqualTo(3);
 
-        template.sendBody("activemq:queue:okay", "Hello World");
+        template.sendBody("jms:queue:okay", "Hello World");
 
         mock.assertIsSatisfied();
         error.assertIsSatisfied();

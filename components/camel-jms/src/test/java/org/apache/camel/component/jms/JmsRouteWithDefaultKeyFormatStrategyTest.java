@@ -26,21 +26,24 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRouteWithDefaultKeyFormatStrategyTest extends CamelTestSupport {
 
     protected String getUri() {
-        return "activemq:queue:foo?jmsKeyFormatStrategy=default";
+        return "jms:queue:foo?jmsKeyFormatStrategy=default";
     }
 
     @Test
     public void testIllegalOption() throws Exception {
         try {
-            context.getEndpoint("activemq:queue:bar?jmsHeaderStrategy=xxx");
+            context.getEndpoint("jms:queue:bar?jmsHeaderStrategy=xxx");
             fail("Should have thrown a ResolveEndpointFailedException");
         } catch (ResolveEndpointFailedException e) {
             // expected
@@ -89,10 +92,14 @@ public class JmsRouteWithDefaultKeyFormatStrategyTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        ConnectionFactory connectionFactory = doCreateConnectionFactory();
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
+    }
+
+    protected ConnectionFactory doCreateConnectionFactory() {
+        return CamelJmsTestHelper.createConnectionFactory();
     }
 
     @Override

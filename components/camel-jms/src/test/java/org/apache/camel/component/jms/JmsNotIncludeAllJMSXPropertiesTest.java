@@ -24,6 +24,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
@@ -31,6 +32,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  *
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsNotIncludeAllJMSXPropertiesTest extends CamelTestSupport {
 
     @Test
@@ -45,7 +47,7 @@ public class JmsNotIncludeAllJMSXPropertiesTest extends CamelTestSupport {
         headers.put("JMSXUserID", "Donald");
         headers.put("JMSXAppID", "MyApp");
 
-        template.sendBodyAndHeaders("activemq:queue:in", "Hello World", headers);
+        template.sendBodyAndHeaders("jms:queue:in", "Hello World", headers);
 
         assertMockEndpointsSatisfied();
     }
@@ -55,14 +57,14 @@ public class JmsNotIncludeAllJMSXPropertiesTest extends CamelTestSupport {
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
         JmsComponent jms = jmsComponentAutoAcknowledge(connectionFactory);
         jms.setIncludeAllJMSXProperties(false);
-        camelContext.addComponent("activemq", jms);
+        camelContext.addComponent("jms", jms);
         return camelContext;
     }
 
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:in")
+                from("jms:queue:in")
                     .to("mock:result");
             }
         };

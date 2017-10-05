@@ -25,12 +25,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRouteUsingDifferentHeadersTest extends CamelTestSupport {
 
     @Test
@@ -56,7 +58,7 @@ public class JmsRouteUsingDifferentHeadersTest extends CamelTestSupport {
         mock.message(0).header("g").isInstanceOf(Short.class);
         mock.message(0).header("h").isInstanceOf(String.class);
 
-        template.sendBodyAndHeaders("activemq:queue:foo", "Hello World", headers);
+        template.sendBodyAndHeaders("jms:queue:foo", "Hello World", headers);
 
         assertMockEndpointsSatisfied();
     }
@@ -65,7 +67,7 @@ public class JmsRouteUsingDifferentHeadersTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -75,7 +77,7 @@ public class JmsRouteUsingDifferentHeadersTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo").to("mock:result");
+                from("jms:queue:foo").to("mock:result");
             }
         };
     }

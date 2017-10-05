@@ -26,15 +26,17 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutFixedReplyQueueTimeoutTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testOk() throws Exception {
@@ -73,10 +75,10 @@ public class JmsInOutFixedReplyQueueTimeoutTest extends CamelTestSupport {
         return new RouteBuilder() {
             public void configure() throws Exception {
                 from("direct:start")
-                        .inOut("activemq:queue:foo?replyTo=queue:bar&requestTimeout=2000")
+                        .inOut("jms:queue:foo?replyTo=queue:bar&requestTimeout=2000")
                         .to("mock:result");
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                         .process(new Processor() {
                             @Override
                             public void process(Exchange exchange) throws Exception {

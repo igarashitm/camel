@@ -22,14 +22,17 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutRoutingSlipTest extends CamelTestSupport {
 
     @Test
@@ -38,7 +41,7 @@ public class JmsInOutRoutingSlipTest extends CamelTestSupport {
         getMockEndpoint("mock:result").expectedBodiesReceived("Bye World");
         getMockEndpoint("mock:end").expectedBodiesReceived("Bye World");
 
-        template.sendBodyAndHeader("activemq:queue:start", "World", "slip", "activemq:queue:foo,activemq:queue:result");
+        template.sendBodyAndHeader("jms:queue:start", "World", "slip", "jms:queue:foo,jms:queue:result");
 
         assertMockEndpointsSatisfied();
     }
@@ -46,7 +49,7 @@ public class JmsInOutRoutingSlipTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -55,18 +58,18 @@ public class JmsInOutRoutingSlipTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:start")
+                from("jms:queue:start")
                     .setExchangePattern(ExchangePattern.InOut)
                     .routingSlip(header("slip"))
                     .to("log:end")
                     .to("mock:end");
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .to("mock:foo")
                     .to("log:foo")
                     .transform(body().prepend("Bye "));
 
-                from("activemq:queue:result")
+                from("jms:queue:result")
                     .to("log:result")
                     .to("mock:result");
             }

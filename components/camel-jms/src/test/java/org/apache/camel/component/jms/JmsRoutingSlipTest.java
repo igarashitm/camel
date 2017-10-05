@@ -22,21 +22,24 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test from JMS -> routing slip
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRoutingSlipTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testJmsRoutingSlip() throws Exception {
         getMockEndpoint("mock:a").expectedBodiesReceived("Hello World");
         getMockEndpoint("mock:b").expectedBodiesReceived("Hello World");
 
-        template.sendBodyAndHeader("activemq:queue:hello", "Hello World", "myslip", "mock:a#mock:b");
+        template.sendBodyAndHeader("jms:queue:hello", "Hello World", "myslip", "mock:a#mock:b");
 
         assertMockEndpointsSatisfied();
     }
@@ -53,7 +56,7 @@ public class JmsRoutingSlipTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:hello").routingSlip(header("myslip"), "#");
+                from("jms:queue:hello").routingSlip(header("myslip"), "#");
             }
         };
     }

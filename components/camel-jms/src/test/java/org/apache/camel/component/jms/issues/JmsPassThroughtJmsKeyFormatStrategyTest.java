@@ -25,18 +25,21 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
 import org.apache.camel.component.jms.JmsComponent;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsPassThroughtJmsKeyFormatStrategyTest extends CamelTestSupport {
 
-    private String uri = "activemq:queue:hello";
+    private String uri = "jms:queue:hello";
 
     @Test
     public void testSendWithHeaders() throws Exception {
@@ -62,10 +65,10 @@ public class JmsPassThroughtJmsKeyFormatStrategyTest extends CamelTestSupport {
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
 
         // configure to use passthrough
-        JmsComponent activemq = jmsComponentAutoAcknowledge(connectionFactory);
-        activemq.setJmsKeyFormatStrategy("passthrough");
+        JmsComponent jms = jmsComponentAutoAcknowledge(connectionFactory);
+        jms.setJmsKeyFormatStrategy("passthrough");
 
-        camelContext.addComponent("activemq", activemq);
+        camelContext.addComponent("jms", jms);
 
         return camelContext;
     }

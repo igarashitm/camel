@@ -22,12 +22,14 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsToTest extends CamelTestSupport {
 
     @Test
@@ -46,7 +48,7 @@ public class JmsToTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -57,13 +59,13 @@ public class JmsToTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 // wrongly using to instead of toD
-                from("direct:start").to("activemq:queue:${header.where}");
+                from("direct:start").to("jms:queue:${header.where}");
 
-                from("activemq:queue:bar").to("mock:bar");
-                from("activemq:queue:beer").to("mock:beer");
+                from("jms:queue:bar").to("mock:bar");
+                from("jms:queue:beer").to("mock:beer");
 
                 // and all the messages goes here
-                from("activemq:queue:${header.where}").to("mock:where");
+                from("jms:queue:${header.where}").to("mock:where");
             }
         };
     }

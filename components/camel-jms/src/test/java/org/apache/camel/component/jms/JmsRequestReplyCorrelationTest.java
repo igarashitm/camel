@@ -30,11 +30,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Tests how the correlation between request and reply is done
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplyCorrelationTest extends CamelTestSupport {
 
     private static final String REPLY_BODY = "Bye World";

@@ -24,6 +24,7 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
@@ -31,6 +32,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  * Tests that setting a fault body after doing JMS works. Because JmsMessage has an
  * JMS specific copyFrom method being used.
  */
+@RunWith(MultipleJmsImplementations.class)
 public class SetFaultBodyAfterJmsRequestReplyIssueTest extends CamelTestSupport {
 
     @Test
@@ -51,7 +53,7 @@ public class SetFaultBodyAfterJmsRequestReplyIssueTest extends CamelTestSupport 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -70,10 +72,10 @@ public class SetFaultBodyAfterJmsRequestReplyIssueTest extends CamelTestSupport 
                     });
 
                 from("direct:start")
-                    .inOut("activemq:queue:foo")
+                    .inOut("jms:queue:foo")
                     .throwException(new IllegalArgumentException("Forced"));
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .process(new Processor() {
                         public void process(Exchange exchange) throws Exception {
                             exchange.getOut().setBody("Bye World");

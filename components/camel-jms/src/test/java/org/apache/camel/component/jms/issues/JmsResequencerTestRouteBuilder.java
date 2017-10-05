@@ -25,8 +25,8 @@ public class JmsResequencerTestRouteBuilder extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("activemq:queue:in1").resequence().body().batch().size(100).timeout(10000L).to("mock:result");
-        from("activemq:queue:in2").resequence().header("num").stream().timeout(2000L).to("mock:result");
+        from("jms:queue:in1").resequence().body().batch().size(100).timeout(10000L).to("mock:result");
+        from("jms:queue:in2").resequence().header("num").stream().timeout(2000L).to("mock:result");
     }
 
 }

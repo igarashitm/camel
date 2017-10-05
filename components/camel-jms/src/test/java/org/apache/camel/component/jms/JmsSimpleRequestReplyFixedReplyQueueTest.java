@@ -22,15 +22,17 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * A simple request / reply test
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsSimpleRequestReplyFixedReplyQueueTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testWithInOnly() throws Exception {
@@ -66,10 +68,10 @@ public class JmsSimpleRequestReplyFixedReplyQueueTest extends CamelTestSupport {
         return new RouteBuilder() {
             public void configure() throws Exception {
                 from("direct:start")
-                    .inOut("activemq:queue:foo?replyTo=queue:bar")
+                    .inOut("jms:queue:foo?replyTo=queue:bar")
                     .to("mock:result");
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .transform(body().prepend("Hello "));
             }
         };

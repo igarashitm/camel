@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms.issues;
+package org.apache.camel.component.jms.activemq.issues;
 
 import javax.jms.ConnectionFactory;
 
@@ -23,9 +23,11 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentTransacted;
 
@@ -38,7 +40,7 @@ public class JmsTransactedOnExceptionRollbackOnExceptionTest extends CamelTestSu
         }
     }
    
-    protected final String testingEndpoint = "activemq:test." + getClass().getName();
+    protected final String testingEndpoint = "jms:test." + getClass().getName();
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
@@ -60,7 +62,7 @@ public class JmsTransactedOnExceptionRollbackOnExceptionTest extends CamelTestSu
     public void shouldNotLoseMessagesOnExceptionInErrorHandler() throws Exception {
         template.sendBody(testingEndpoint, "Hello World");
 
-        Object dlqBody = consumer.receiveBody("activemq:ActiveMQ.DLQ", 2000);
+        Object dlqBody = consumer.receiveBody("jms:ActiveMQ.DLQ", 2000);
         assertEquals("Hello World", dlqBody);
     }
 
@@ -68,9 +70,9 @@ public class JmsTransactedOnExceptionRollbackOnExceptionTest extends CamelTestSu
         CamelContext camelContext = super.createCamelContext();
 
         // no redeliveries
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory(0);
+        ConnectionFactory connectionFactory = CamelJmsTestHelper.ACTIVEMQ.createConnectionFactory(0);
         JmsComponent component = jmsComponentTransacted(connectionFactory);
-        camelContext.addComponent("activemq", component);
+        camelContext.addComponent("jms", component);
         return camelContext;
     }
 

@@ -37,7 +37,7 @@
         <property name="connectionFactory" ref="poolConnectionFactory"/>
     </bean>
 
-    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
         <property name="connectionFactory" ref="poolConnectionFactory"/>
         <property name="transacted" value="true"/>
         <property name="transactionManager" ref="jmsTransactionManager"/>
@@ -58,7 +58,7 @@
       </errorHandler>
 
         <route id="myRoute" errorHandlerRef="txEH">
-            <from uri="activemq:queue:okay"/>
+            <from uri="jms:queue:okay"/>
             <transacted/>
             <to uri="mock:before"/>
             <process ref="myProcessor"/>

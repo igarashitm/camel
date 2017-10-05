@@ -55,15 +55,15 @@ public class JmsAddAndRemoveRouteManagementTest extends CamelTestSupport {
         context.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:in").routeId("myNewRoute")
-                    .to("activemq:queue:foo");
+                from("jms:queue:in").routeId("myNewRoute")
+                    .to("jms:queue:foo");
             }
         });
 
         Set<ObjectName> during = mbeanServer.queryNames(new ObjectName("*:type=threadpools,*"), null);
         assertEquals("There should be one more thread pool in JMX", before.size() + 1, during.size());
 
-        template.sendBody("activemq:queue:in", "Hello World");
+        template.sendBody("jms:queue:in", "Hello World");
 
         assertMockEndpointsSatisfied();
 
@@ -79,7 +79,7 @@ public class JmsAddAndRemoveRouteManagementTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -89,7 +89,7 @@ public class JmsAddAndRemoveRouteManagementTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo").to("mock:result");
+                from("jms:queue:foo").to("mock:result");
             }
         };
     }

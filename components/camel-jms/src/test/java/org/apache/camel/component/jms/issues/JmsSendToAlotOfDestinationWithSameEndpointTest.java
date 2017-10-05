@@ -31,7 +31,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class JmsSendToAlotOfDestinationWithSameEndpointTest extends CamelSpringTestSupport {
 
     private static final Logger LOG = LoggerFactory.getLogger(JmsSendToAlotOfDestinationWithSameEndpointTest.class);
-    private static final String URI = "activemq:queue:foo?autoStartup=false";
+    private static final String URI = "jms:queue:foo?autoStartup=false";
 
     @Test
     public void testSendToAlotOfMessageToQueues() throws Exception {

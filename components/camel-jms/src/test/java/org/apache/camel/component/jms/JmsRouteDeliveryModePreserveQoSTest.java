@@ -22,15 +22,18 @@ import javax.jms.DeliveryMode;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jms.JmsConstants;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test for preserveMessageQos with delivery mode
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRouteDeliveryModePreserveQoSTest extends CamelTestSupport {
 
     @Test
@@ -38,7 +41,7 @@ public class JmsRouteDeliveryModePreserveQoSTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:bar");
         mock.expectedBodiesReceived("Hello World");
 
-        template.sendBody("activemq:queue:foo?preserveMessageQos=true", "Hello World");
+        template.sendBody("jms:queue:foo?preserveMessageQos=true", "Hello World");
 
         assertMockEndpointsSatisfied();
 
@@ -53,7 +56,7 @@ public class JmsRouteDeliveryModePreserveQoSTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:bar");
         mock.expectedBodiesReceived("Hello World");
 
-        template.sendBodyAndHeader("activemq:queue:foo?preserveMessageQos=true", "Hello World", "JMSDeliveryMode", DeliveryMode.NON_PERSISTENT);
+        template.sendBodyAndHeader("jms:queue:foo?preserveMessageQos=true", "Hello World", "JMSDeliveryMode", DeliveryMode.NON_PERSISTENT);
 
         assertMockEndpointsSatisfied();
 
@@ -68,7 +71,7 @@ public class JmsRouteDeliveryModePreserveQoSTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:bar");
         mock.expectedBodiesReceived("Hello World");
 
-        template.sendBodyAndHeader("activemq:queue:foo?preserveMessageQos=true", "Hello World", "JMSDeliveryMode", "NON_PERSISTENT");
+        template.sendBodyAndHeader("jms:queue:foo?preserveMessageQos=true", "Hello World", "JMSDeliveryMode", "NON_PERSISTENT");
 
         assertMockEndpointsSatisfied();
 
@@ -83,7 +86,7 @@ public class JmsRouteDeliveryModePreserveQoSTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:bar");
         mock.expectedBodiesReceived("Hello World");
 
-        template.sendBodyAndHeader("activemq:queue:foo?preserveMessageQos=true", "Hello World", "JMSDeliveryMode", DeliveryMode.PERSISTENT);
+        template.sendBodyAndHeader("jms:queue:foo?preserveMessageQos=true", "Hello World", "JMSDeliveryMode", DeliveryMode.PERSISTENT);
 
         assertMockEndpointsSatisfied();
 
@@ -98,7 +101,7 @@ public class JmsRouteDeliveryModePreserveQoSTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:bar");
         mock.expectedBodiesReceived("Hello World");
 
-        template.sendBodyAndHeader("activemq:queue:foo?preserveMessageQos=true", "Hello World", "JMSDeliveryMode", "PERSISTENT");
+        template.sendBodyAndHeader("jms:queue:foo?preserveMessageQos=true", "Hello World", "JMSDeliveryMode", "PERSISTENT");
 
         assertMockEndpointsSatisfied();
 
@@ -108,6 +111,8 @@ public class JmsRouteDeliveryModePreserveQoSTest extends CamelTestSupport {
         assertEquals(DeliveryMode.PERSISTENT, map.get("JMSDeliveryMode"));
     }
 
+    // TODO CAMEL-11238 invalid DeliveryMode 3
+    @MultipleJmsImplementations.Option(ignore=MultipleJmsImplementations.Broker.Artemis)
     @Test
     public void testNonJmsDeliveryMode() throws InterruptedException {
         MockEndpoint mock = getMockEndpoint("mock:bar");
@@ -142,6 +147,8 @@ public class JmsRouteDeliveryModePreserveQoSTest extends CamelTestSupport {
         assertMockEndpointsSatisfied();
     }
 
+    // TODO CAMEL-11238 invalid DeliveryMode 3
+    @MultipleJmsImplementations.Option(ignore=MultipleJmsImplementations.Broker.Artemis)
     @Test
     public void testNonJmsDeliveryModePreserveQos() throws InterruptedException {
         MockEndpoint mock = getMockEndpoint("mock:bar");
@@ -164,7 +171,7 @@ public class JmsRouteDeliveryModePreserveQoSTest extends CamelTestSupport {
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createPersistentConnectionFactory();
 
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -174,15 +181,15 @@ public class JmsRouteDeliveryModePreserveQoSTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
-                        .to("activemq:queue:bar?preserveMessageQos=true");
+                from("jms:queue:foo")
+                        .to("jms:queue:bar?preserveMessageQos=true");
 
-                from("activemq:queue:bar")
+                from("jms:queue:bar")
                         .to("mock:bar");
 
-                from("direct:nonJmsDeliveryMode").to("activemq:queue:bar?deliveryMode=3");
-                from("direct:noExplicitNonJmsDeliveryMode").to("activemq:queue:bar?deliveryMode=3&explicitQosEnabled=false");
-                from("direct:preserveQosNonJmsDeliveryMode").to("activemq:queue:bar?preserveMessageQos=true");
+                from("direct:nonJmsDeliveryMode").to("jms:queue:bar?deliveryMode=3");
+                from("direct:noExplicitNonJmsDeliveryMode").to("jms:queue:bar?deliveryMode=3&explicitQosEnabled=false");
+                from("direct:preserveQosNonJmsDeliveryMode").to("jms:queue:bar?preserveMessageQos=true");
             }
         };
     }

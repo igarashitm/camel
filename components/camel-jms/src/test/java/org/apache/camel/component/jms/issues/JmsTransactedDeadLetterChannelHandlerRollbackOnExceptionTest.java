@@ -23,12 +23,15 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentTransacted;
 
+@RunWith(MultipleJmsImplementations.class)
 public class JmsTransactedDeadLetterChannelHandlerRollbackOnExceptionTest extends CamelTestSupport {
     
     public static class BadErrorHandler {
@@ -38,7 +41,7 @@ public class JmsTransactedDeadLetterChannelHandlerRollbackOnExceptionTest extend
         }
     }
    
-    protected final String testingEndpoint = "activemq:test." + getClass().getName();
+    protected final String testingEndpoint = "jms:test." + getClass().getName();
 
     protected boolean isHandleNew() {
         return true;
@@ -68,7 +71,7 @@ public class JmsTransactedDeadLetterChannelHandlerRollbackOnExceptionTest extend
 
         // as we handle new exception, then the exception is ignored
         // and causes the transaction to commit, so there is no message in the ActiveMQ DLQ queue
-        Object dlqBody = consumer.receiveBody("activemq:ActiveMQ.DLQ", 2000);
+        Object dlqBody = consumer.receiveBody("jms:ActiveMQ.DLQ", 2000);
         assertNull("Should not rollback the transaction", dlqBody);
     }
 
@@ -76,10 +79,13 @@ public class JmsTransactedDeadLetterChannelHandlerRollbackOnExceptionTest extend
         CamelContext camelContext = super.createCamelContext();
 
         // no redeliveries
-        ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory(0);
+        ConnectionFactory connectionFactory = doCreateConnectionFactory();
         JmsComponent component = jmsComponentTransacted(connectionFactory);
-        camelContext.addComponent("activemq", component);
+        camelContext.addComponent("jms", component);
         return camelContext;
     }
 
+    protected ConnectionFactory doCreateConnectionFactory() {
+        return CamelJmsTestHelper.createConnectionFactory(0);
+    }
 }

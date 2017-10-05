@@ -46,7 +46,7 @@ public class AsyncEndpointJmsTXTryCatchFinallyTest extends CamelSpringTestSuppor
         getMockEndpoint("mock:catch").expectedMessageCount(0);
         getMockEndpoint("mock:finally").expectedBodiesReceived("Bye Camel");
 
-        template.sendBody("activemq:queue:inbox", "Hello Camel");
+        template.sendBody("jms:queue:inbox", "Hello Camel");
 
         assertMockEndpointsSatisfied();
 
@@ -61,7 +61,7 @@ public class AsyncEndpointJmsTXTryCatchFinallyTest extends CamelSpringTestSuppor
             public void configure() throws Exception {
                 context.addComponent("async", new MyAsyncComponent());
 
-                from("activemq:queue:inbox")
+                from("jms:queue:inbox")
                     .transacted()
                         .to("mock:before")
                         .to("log:before")

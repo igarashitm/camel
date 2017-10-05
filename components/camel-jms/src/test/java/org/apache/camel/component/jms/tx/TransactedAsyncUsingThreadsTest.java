@@ -52,7 +52,7 @@ public class TransactedAsyncUsingThreadsTest extends CamelSpringTestSupport {
         getMockEndpoint("mock:result").expectedMessageCount(1);
         getMockEndpoint("mock:async").expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:foo", "Hello World");
+        template.sendBody("jms:queue:foo", "Hello World");
 
         assertMockEndpointsSatisfied();
 
@@ -74,7 +74,7 @@ public class TransactedAsyncUsingThreadsTest extends CamelSpringTestSupport {
         // the 2nd message is the redelivered by the JMS broker
         getMockEndpoint("mock:async").message(1).header("JMSRedelivered").isEqualTo(true);
 
-        template.sendBody("activemq:queue:foo", "Bye World");
+        template.sendBody("jms:queue:foo", "Bye World");
 
         assertMockEndpointsSatisfied();
 
@@ -87,7 +87,7 @@ public class TransactedAsyncUsingThreadsTest extends CamelSpringTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .process(new Processor() {
                         public void process(Exchange exchange) throws Exception {
                             thread1 = Thread.currentThread().getName();

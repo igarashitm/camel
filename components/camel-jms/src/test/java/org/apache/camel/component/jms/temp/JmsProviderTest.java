@@ -25,10 +25,13 @@ import org.apache.camel.component.jms.JmsConfiguration;
 import org.apache.camel.component.jms.JmsEndpoint;
 import org.apache.camel.component.jms.JmsMock;
 import org.apache.camel.component.jms.JmsProviderMetadata;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+@RunWith(MultipleJmsImplementations.class)
 public class JmsProviderTest extends CamelTestSupport {
 
     @Rule

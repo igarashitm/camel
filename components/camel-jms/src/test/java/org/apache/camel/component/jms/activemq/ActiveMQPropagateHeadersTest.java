@@ -55,7 +55,7 @@ public class ActiveMQPropagateHeadersTest extends CamelTestSupport {
         firstMessageExpectations.header("JMSCorrelationID").isEqualTo(correlationID);
         firstMessageExpectations.header("JMSType").isEqualTo(messageType);
 
-        template.sendBodyAndHeader("activemq:test.a", expectedBody, "cheese", 123);
+        template.sendBodyAndHeader("jms:test.a", expectedBody, "cheese", 123);
 
         resultEndpoint.assertIsSatisfied();
 
@@ -71,7 +71,7 @@ public class ActiveMQPropagateHeadersTest extends CamelTestSupport {
 
         // START SNIPPET: example
         ConnectionFactory connectionFactory = CamelJmsTestHelper.ACTIVEMQ.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         // END SNIPPET: example
 
         return camelContext;
@@ -82,7 +82,7 @@ public class ActiveMQPropagateHeadersTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:test.a").process(new Processor() {
+                from("jms:test.a").process(new Processor() {
                     @Override
                     public void process(Exchange exchange) throws Exception {
                         // set the JMS headers
@@ -94,9 +94,9 @@ public class ActiveMQPropagateHeadersTest extends CamelTestSupport {
                 // must set option to preserve message QoS as we send an InOnly but put a JMSReplyTo
                 // that does not work well on the consumer side, as it would assume it should send a reply
                 // but we do not expect a reply as we are InOnly.
-                }).to("activemq:test.b?preserveMessageQos=true");
+                }).to("jms:test.b?preserveMessageQos=true");
 
-                from("activemq:test.b").to("mock:result");
+                from("jms:test.b").to("mock:result");
             }
         };
     }

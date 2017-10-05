@@ -22,12 +22,14 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOnlyWithReplyToDisabledTest extends CamelTestSupport {
 
     @Test
@@ -44,7 +46,7 @@ public class JmsInOnlyWithReplyToDisabledTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -54,14 +56,14 @@ public class JmsInOnlyWithReplyToDisabledTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 from("direct:start")
-                    .to("activemq:queue:foo?replyTo=queue:bar&disableReplyTo=true")
+                    .to("jms:queue:foo?replyTo=queue:bar&disableReplyTo=true")
                     .to("mock:done");
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .to("mock:foo")
                     .transform(body().prepend("Bye "));
 
-                from("activemq:queue:bar")
+                from("jms:queue:bar")
                     .to("mock:bar");
             }
         };

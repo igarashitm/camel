@@ -42,12 +42,12 @@
         </route>
 
         <route>
-            <from uri="activemq:topic:audit"/>
+            <from uri="jms:topic:audit"/>
             <to uri="mock:audit"/>
         </route>
     </camelContext>
 
-    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
         <property name="connectionFactory">
             <bean class="org.apache.activemq.ActiveMQConnectionFactory">
                 <property name="brokerURL" value="vm://localhost?broker.persistent=false&amp;broker.useJmx=false"/>

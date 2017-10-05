@@ -48,7 +48,7 @@ public class AsyncEndpointJmsTXRollback2Test extends CamelSpringTestSupport {
         getMockEndpoint("mock:after").expectedBodiesReceived("Hi Camel", "Hi Camel");
         getMockEndpoint("mock:result").expectedBodiesReceived("Bye Camel");
 
-        template.sendBody("activemq:queue:inbox", "Hello Camel");
+        template.sendBody("jms:queue:inbox", "Hello Camel");
 
         assertMockEndpointsSatisfied();
 
@@ -63,7 +63,7 @@ public class AsyncEndpointJmsTXRollback2Test extends CamelSpringTestSupport {
             public void configure() throws Exception {
                 context.addComponent("async", new MyAsyncComponent());
 
-                from("activemq:queue:inbox")
+                from("jms:queue:inbox")
                     .transacted()
                         .to("mock:before")
                         .to("log:before")

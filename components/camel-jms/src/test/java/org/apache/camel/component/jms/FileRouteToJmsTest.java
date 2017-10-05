@@ -34,7 +34,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 @RunWith(MultipleJmsImplementations.class)
 public class FileRouteToJmsTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testRouteToFile() throws Exception {
@@ -64,9 +64,9 @@ public class FileRouteToJmsTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("file://target/routefromfile").to("activemq:queue:hello");
+                from("file://target/routefromfile").to("jms:queue:hello");
 
-                from("activemq:queue:hello").to("mock:result");
+                from("jms:queue:hello").to("mock:result");
             }
         };
     }

@@ -44,7 +44,7 @@ public class JmsAutoStartupTest extends CamelTestSupport {
         // should be stopped by default
         mock.expectedMessageCount(0);
 
-        template.sendBody("activemq:queue:foo", "Hello World");
+        template.sendBody("jms:queue:foo", "Hello World");
 
         Thread.sleep(2000);
 
@@ -64,7 +64,7 @@ public class JmsAutoStartupTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                endpoint = context.getEndpoint("activemq:queue:foo?autoStartup=false", JmsEndpoint.class);
+                endpoint = context.getEndpoint("jms:queue:foo?autoStartup=false", JmsEndpoint.class);
 
                 from(endpoint).to("mock:result");
             }
@@ -77,7 +77,7 @@ public class JmsAutoStartupTest extends CamelTestSupport {
 
         // must use persistent so the message is not lost
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createPersistentConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }

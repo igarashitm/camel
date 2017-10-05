@@ -21,19 +21,22 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class AsyncConsumerInOutTwoTest extends CamelTestSupport {
 
     @Test
     public void testAsyncJmsConsumer() throws Exception {
-        String out = template.requestBody("activemq:queue:start?replyTo=bar", "Hello World", String.class);
+        String out = template.requestBody("jms:queue:start?replyTo=bar", "Hello World", String.class);
         assertEquals("Bye World", out);
     }
 
@@ -43,7 +46,7 @@ public class AsyncConsumerInOutTwoTest extends CamelTestSupport {
         camelContext.addComponent("async", new MyAsyncComponent());
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -54,7 +57,7 @@ public class AsyncConsumerInOutTwoTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 // enable async in only mode on the consumer
-                from("activemq:queue:start?asyncConsumer=true")
+                from("jms:queue:start?asyncConsumer=true")
                     .to("async:camel?delay=2000")
                     .transform(constant("Bye World"));
             }

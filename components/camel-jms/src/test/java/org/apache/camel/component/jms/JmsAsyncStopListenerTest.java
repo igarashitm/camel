@@ -33,15 +33,15 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 @RunWith(MultipleJmsImplementations.class)
 public class JmsAsyncStopListenerTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testAsyncStopListener() throws Exception {
         MockEndpoint result = getMockEndpoint("mock:result");
         result.expectedMessageCount(2);
 
-        template.sendBody("activemq:queue:hello2", "Hello World");
-        template.sendBody("activemq:queue:hello2", "Gooday World");
+        template.sendBody("jms:queue:hello2", "Hello World");
+        template.sendBody("jms:queue:hello2", "Gooday World");
 
         result.assertIsSatisfied();
     }
@@ -63,7 +63,7 @@ public class JmsAsyncStopListenerTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:hello2").to("mock:result");
+                from("jms:queue:hello2").to("mock:result");
             }
         };
     }

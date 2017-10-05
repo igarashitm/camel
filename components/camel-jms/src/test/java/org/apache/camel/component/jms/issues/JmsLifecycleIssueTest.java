@@ -22,17 +22,20 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ServiceStatus;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.ServiceStatus.Started;
 import static org.apache.camel.ServiceStatus.Stopped;
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
+@RunWith(MultipleJmsImplementations.class)
 public class JmsLifecycleIssueTest extends CamelTestSupport {
 
     public static final String ROUTE_ID = "simpleRoute";
-    public static final String ENDPOINT_URI = "activemq:processOrder";
+    public static final String ENDPOINT_URI = "jms:processOrder";
 
     @Test
     public void routeThatIsStoppedAndThenResumedAcceptsMessage() throws Exception {
@@ -70,7 +73,7 @@ public class JmsLifecycleIssueTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 

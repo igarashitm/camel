@@ -24,17 +24,19 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutSynchronousTest extends CamelTestSupport {
 
     private static String beforeThreadName;
     private static String afterThreadName;
-    private String url = "activemq:queue:in?synchronous=true";
+    private String url = "jms:queue:in?synchronous=true";
 
     @Test
     public void testSynchronous() throws Exception {
@@ -47,7 +49,7 @@ public class JmsInOutSynchronousTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -70,7 +72,7 @@ public class JmsInOutSynchronousTest extends CamelTestSupport {
                     .to("log:after")
                     .to("mock:result");
 
-                from("activemq:queue:in").process(new Processor() {
+                from("jms:queue:in").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         exchange.getOut().setBody("Bye World");
                     }

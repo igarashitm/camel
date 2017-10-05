@@ -23,12 +23,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentTransacted;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsSelectorTest extends CamelTestSupport {
 
     @Test
@@ -40,8 +42,8 @@ public class JmsSelectorTest extends CamelTestSupport {
         resultEndpoint.expectedBodiesReceived(expectedBody2);
         resultEndpoint.message(0).header("cheese").isEqualTo("y");
 
-        template.sendBodyAndHeader("activemq:test.a", expectedBody, "cheese", "x");
-        template.sendBodyAndHeader("activemq:test.a", expectedBody2, "cheese", "y");
+        template.sendBodyAndHeader("jms:test.a", expectedBody, "cheese", "x");
+        template.sendBodyAndHeader("jms:test.a", expectedBody2, "cheese", "y");
 
         resultEndpoint.assertIsSatisfied();
     }
@@ -51,15 +53,15 @@ public class JmsSelectorTest extends CamelTestSupport {
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
         JmsComponent component = jmsComponentTransacted(connectionFactory);
-        camelContext.addComponent("activemq", component);
+        camelContext.addComponent("jms", component);
         return camelContext;
     }
 
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:test.a").to("activemq:test.b");
-                from("activemq:test.b?selector=cheese='y'").to("mock:result");
+                from("jms:test.a").to("jms:test.b");
+                from("jms:test.b?selector=cheese='y'").to("mock:result");
             }
         };
     }

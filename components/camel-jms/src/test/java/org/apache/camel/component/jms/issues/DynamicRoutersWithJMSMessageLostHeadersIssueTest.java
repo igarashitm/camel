@@ -23,14 +23,17 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Header;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class DynamicRoutersWithJMSMessageLostHeadersIssueTest extends CamelTestSupport {
 
     @Override
@@ -45,7 +48,7 @@ public class DynamicRoutersWithJMSMessageLostHeadersIssueTest extends CamelTestS
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -55,7 +58,7 @@ public class DynamicRoutersWithJMSMessageLostHeadersIssueTest extends CamelTestS
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue1")
+                from("jms:queue1")
                         .setHeader("HEADER1", constant("header1"))
                         .dynamicRouter(method(DynamicRouter.class, "dynamicRoute"))
                         .to("mock:checkHeader");
@@ -83,7 +86,7 @@ public class DynamicRoutersWithJMSMessageLostHeadersIssueTest extends CamelTestS
         getMockEndpoint("mock:checkHeader").expectedMessageCount(1);
         getMockEndpoint("mock:checkHeader").expectedHeaderReceived("HEADER1", "header1");
 
-        template.sendBody("activemq:queue1", "A");
+        template.sendBody("jms:queue1", "A");
 
         assertMockEndpointsSatisfied();
     }

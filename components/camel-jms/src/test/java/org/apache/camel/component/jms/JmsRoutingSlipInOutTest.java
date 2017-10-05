@@ -26,19 +26,21 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRoutingSlipInOutTest extends CamelTestSupport {
 
     @Test
     public void testInOutRoutingSlip() throws Exception {
         getMockEndpoint("mock:result").expectedBodiesReceived("Result-Done-B-A-Hello");
 
-        template.sendBody("activemq:queue:start", "Hello");
+        template.sendBody("jms:queue:start", "Hello");
 
         assertMockEndpointsSatisfied();
     }
@@ -47,7 +49,7 @@ public class JmsRoutingSlipInOutTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -64,7 +66,7 @@ public class JmsRoutingSlipInOutTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:start")
+                from("jms:queue:start")
                     .to("direct:start")
                     .to("bean:myBean?method=doResult")
                     .to("mock:result");
@@ -75,10 +77,10 @@ public class JmsRoutingSlipInOutTest extends CamelTestSupport {
                     .routingSlip(header("mySlip"))
                     .to("bean:myBean?method=backFromSlip");
 
-                from("activemq:queue:a")
+                from("jms:queue:a")
                     .to("bean:myBean?method=doA");
 
-                from("activemq:queue:b")
+                from("jms:queue:b")
                     .to("bean:myBean?method=doB");
             }
         };
@@ -87,7 +89,7 @@ public class JmsRoutingSlipInOutTest extends CamelTestSupport {
     public static final class MyBean {
 
         public void createSlip(@Headers Map<String, Object> headers) {
-            headers.put("mySlip", "activemq:queue:a,activemq:queue:b");
+            headers.put("mySlip", "jms:queue:a,jms:queue:b");
         }
 
         public String backFromSlip(String body) {

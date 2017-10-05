@@ -25,11 +25,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRemoveHeaderTest extends CamelTestSupport {
 
     @Test
@@ -45,7 +48,7 @@ public class JmsRemoveHeaderTest extends CamelTestSupport {
         headers.put("foo", "cheese");
         headers.put("bar", 123);
 
-        template.sendBodyAndHeaders("activemq:queue:foo", "Hello World", headers);
+        template.sendBodyAndHeaders("jms:queue:foo", "Hello World", headers);
 
         assertMockEndpointsSatisfied();
     }
@@ -54,7 +57,7 @@ public class JmsRemoveHeaderTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -64,9 +67,9 @@ public class JmsRemoveHeaderTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo").removeHeader("foo").to("activemq:queue:bar");
+                from("jms:queue:foo").removeHeader("foo").to("jms:queue:bar");
 
-                from("activemq:queue:bar").to("mock:result");
+                from("jms:queue:bar").to("mock:result");
             }
         };
     }

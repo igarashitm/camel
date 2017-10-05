@@ -25,21 +25,23 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOnlyWithReplyToHeaderTest extends CamelTestSupport {
 
     @Test
     public void testJmsInOnlyWithReplyToHeader() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedBodiesReceived("Hello World");
-        mock.expectedHeaderReceived("JMSReplyTo", "queue://bar");
+        mock.allMessages().header("JMSReplyTo").convertToString().contains("bar");
 
-        template.send("activemq:queue:foo?preserveMessageQos=true", new Processor() {
+        template.send("jms:queue:foo?preserveMessageQos=true", new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("World");
                 exchange.getIn().setHeader("JMSReplyTo", "bar");
@@ -47,16 +49,16 @@ public class JmsInOnlyWithReplyToHeaderTest extends CamelTestSupport {
         });
 
         assertMockEndpointsSatisfied();
-
+        
         // reply is in bar queue so lets consume it
-        String reply = consumer.receiveBody("activemq:queue:bar", 5000, String.class);
+        String reply = consumer.receiveBody("jms:queue:bar", 5000, String.class);
         assertEquals("Hello World", reply);
     }
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -65,7 +67,7 @@ public class JmsInOnlyWithReplyToHeaderTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .transform(body().prepend("Hello "))
                     .to("mock:result");
             }

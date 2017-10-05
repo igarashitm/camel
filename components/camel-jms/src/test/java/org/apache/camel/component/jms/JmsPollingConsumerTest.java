@@ -24,11 +24,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsPollingConsumerTest extends CamelTestSupport {
 
     @Test
@@ -40,8 +43,8 @@ public class JmsPollingConsumerTest extends CamelTestSupport {
         // the message is sent to the queue
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             public void run() {
-                String body = consumer.receiveBody("activemq:queue.start", String.class);
-                template.sendBody("activemq:queue.foo", body + " Claus");
+                String body = consumer.receiveBody("jms:queue.start", String.class);
+                template.sendBody("jms:queue.foo", body + " Claus");
             }
         });
 
@@ -62,10 +65,10 @@ public class JmsPollingConsumerTest extends CamelTestSupport {
         // the message is sent to the queue
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             public void run() {
-                String body = consumer.receiveBodyNoWait("activemq:queue.start", String.class);
+                String body = consumer.receiveBodyNoWait("jms:queue.start", String.class);
                 assertNull("Should be null", body);
 
-                template.sendBody("activemq:queue.foo", "Hello Claus");
+                template.sendBody("jms:queue.foo", "Hello Claus");
             }
         });
 
@@ -86,10 +89,10 @@ public class JmsPollingConsumerTest extends CamelTestSupport {
         // the message is sent to the queue
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             public void run() {
-                String body = consumer.receiveBody("activemq:queue.start", 100, String.class);
+                String body = consumer.receiveBody("jms:queue.start", 100, String.class);
                 assertNull("Should be null", body);
 
-                template.sendBody("activemq:queue.foo", "Hello Claus");
+                template.sendBody("jms:queue.foo", "Hello Claus");
             }
         });
 
@@ -110,8 +113,8 @@ public class JmsPollingConsumerTest extends CamelTestSupport {
         // the message is sent to the queue
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             public void run() {
-                String body = consumer.receiveBody("activemq:queue.start", 3000, String.class);
-                template.sendBody("activemq:queue.foo", body + " Claus");
+                String body = consumer.receiveBody("jms:queue.start", 3000, String.class);
+                template.sendBody("jms:queue.foo", body + " Claus");
             }
         });
 
@@ -128,7 +131,7 @@ public class JmsPollingConsumerTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -138,9 +141,9 @@ public class JmsPollingConsumerTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("direct:start").to("activemq:queue.start");
+                from("direct:start").to("jms:queue.start");
 
-                from("activemq:queue.foo").to("mock:result");
+                from("jms:queue.foo").to("mock:result");
             }
         };
     }

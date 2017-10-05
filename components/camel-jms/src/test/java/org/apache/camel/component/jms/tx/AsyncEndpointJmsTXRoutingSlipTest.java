@@ -45,7 +45,7 @@ public class AsyncEndpointJmsTXRoutingSlipTest extends CamelSpringTestSupport {
         getMockEndpoint("mock:after").expectedBodiesReceived("Bye Camel");
         getMockEndpoint("mock:result").expectedBodiesReceived("Bye Camel");
 
-        template.sendBody("activemq:queue:inbox", "Hello Camel");
+        template.sendBody("jms:queue:inbox", "Hello Camel");
 
         assertMockEndpointsSatisfied();
 
@@ -60,7 +60,7 @@ public class AsyncEndpointJmsTXRoutingSlipTest extends CamelSpringTestSupport {
             public void configure() throws Exception {
                 context.addComponent("async", new MyAsyncComponent());
 
-                from("activemq:queue:inbox")
+                from("jms:queue:inbox")
                     .transacted()
                         .to("mock:before")
                         .to("log:before")

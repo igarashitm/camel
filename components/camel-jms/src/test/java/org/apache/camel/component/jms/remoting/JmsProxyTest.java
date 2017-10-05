@@ -22,14 +22,17 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.ProxyBuilder;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
+@RunWith(MultipleJmsImplementations.class)
 public class JmsProxyTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
     private Calculator calculatorProxy;
 
     protected CamelContext createCamelContext() throws Exception {
@@ -57,9 +60,9 @@ public class JmsProxyTest extends CamelTestSupport {
             public void configure() throws Exception {
                 from("direct:calculatorProxy")
                     .to("log:calc")
-                    .to("activemq:calculator-queue");
+                    .to("jms:calculator-queue");
 
-                from("activemq:calculator-queue").bean(CalculatorImpl.class);
+                from("jms:calculator-queue").bean(CalculatorImpl.class);
 
             }
         };

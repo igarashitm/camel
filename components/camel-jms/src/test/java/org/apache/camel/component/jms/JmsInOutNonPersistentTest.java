@@ -23,12 +23,14 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutNonPersistentTest extends CamelTestSupport {
 
     @Test
@@ -47,7 +49,7 @@ public class JmsInOutNonPersistentTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -57,10 +59,10 @@ public class JmsInOutNonPersistentTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 from("direct:start")
-                    .to("activemq:queue:foo?replyTo=queue:bar&deliveryPersistent=false")
+                    .to("jms:queue:foo?replyTo=queue:bar&deliveryPersistent=false")
                     .to("log:done?showAll=true", "mock:done");
 
-                from("activemq:queue:foo?replyToDeliveryPersistent=false&preserveMessageQos=true")
+                from("jms:queue:foo?replyToDeliveryPersistent=false&preserveMessageQos=true")
                     .to("log:foo?showAll=true", "mock:foo")
                     .transform(body().prepend("Bye "));
             }

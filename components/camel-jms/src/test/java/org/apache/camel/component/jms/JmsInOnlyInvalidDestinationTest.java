@@ -26,6 +26,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.jms.support.destination.DestinationResolutionException;
 import org.springframework.jms.support.destination.DestinationResolver;
 
@@ -34,13 +35,14 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOnlyInvalidDestinationTest extends CamelTestSupport {
 
     @Test
     public void testInvalidDestination() throws Exception {
         getMockEndpoint("mock:dead").expectedMessageCount(1);
 
-        template.sendBodyAndHeader("direct:foo", "Hello World", "foo", "activemq:queue:foo?destinationResolver=#myResolver");
+        template.sendBodyAndHeader("direct:foo", "Hello World", "foo", "jms:queue:foo?destinationResolver=#myResolver");
 
         assertMockEndpointsSatisfied();
     }
@@ -55,7 +57,7 @@ public class JmsInOnlyInvalidDestinationTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 

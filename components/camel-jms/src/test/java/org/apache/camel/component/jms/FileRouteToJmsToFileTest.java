@@ -37,12 +37,12 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 @RunWith(MultipleJmsImplementations.class)
 public class FileRouteToJmsToFileTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testRouteFileToFile() throws Exception {
         deleteDirectory("target/file2file");
-        NotifyBuilder notify = new NotifyBuilder(context).from("activemq:queue:hello").whenDone(1).create();
+        NotifyBuilder notify = new NotifyBuilder(context).from("jms:queue:hello").whenDone(1).create();
 
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMessageCount(1);
@@ -72,9 +72,9 @@ public class FileRouteToJmsToFileTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("file://target/file2file/in").to("activemq:queue:hello");
+                from("file://target/file2file/in").to("jms:queue:hello");
 
-                from("activemq:queue:hello").to("file://target/file2file/out", "mock:result");
+                from("jms:queue:hello").to("file://target/file2file/out", "mock:result");
             }
         };
     }

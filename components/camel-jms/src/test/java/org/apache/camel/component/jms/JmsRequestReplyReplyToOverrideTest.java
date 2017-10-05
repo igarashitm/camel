@@ -26,18 +26,19 @@ import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplyReplyToOverrideTest extends CamelTestSupport {
 
     private static final Logger LOG = LoggerFactory.getLogger(JmsRequestReplyReplyToOverrideTest.class);
 
     private static final String REQUEST_BODY = "Something";
     private static final String EXPECTED_REPLY_BODY = "Re: " + REQUEST_BODY;
-    private static final String EXPECTED_REPLY_HEADER = "queue://bar";
     
     @Override
     public boolean isUseRouteBuilder() {
@@ -84,7 +85,8 @@ public class JmsRequestReplyReplyToOverrideTest extends CamelTestSupport {
                 final String cid = request.getIn().getHeader("JMSCorrelationID", String.class);
                 final Destination replyTo = request.getIn().getHeader("JMSReplyTo", Destination.class);
                 
-                assertEquals(EXPECTED_REPLY_HEADER, replyTo.toString());
+                assertNotNull(replyTo);
+                assertTrue(replyTo.toString().contains("bar"));
                 
                 // send reply
                 template.send("jms:dummy", ExchangePattern.InOnly, new Processor() {

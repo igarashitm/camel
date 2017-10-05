@@ -26,21 +26,24 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * A simple request / reply test
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsSimpleRequestReplyTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testRequetReply() throws Exception {
         MockEndpoint result = getMockEndpoint("mock:result");
         result.expectedMessageCount(1);
 
-        Exchange out = template.send("activemq:queue:hello", ExchangePattern.InOut, new Processor() {
+        Exchange out = template.send("jms:queue:hello", ExchangePattern.InOut, new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("Hello World");
                 exchange.getIn().setHeader("foo", 123);
@@ -60,8 +63,8 @@ public class JmsSimpleRequestReplyTest extends CamelTestSupport {
         MockEndpoint result = getMockEndpoint("mock:result");
         result.expectedMessageCount(2);
 
-        template.requestBody("activemq:queue:hello", "Hello World");
-        template.requestBody("activemq:queue:hello", "Gooday World");
+        template.requestBody("jms:queue:hello", "Hello World");
+        template.requestBody("jms:queue:hello", "Gooday World");
 
         result.assertIsSatisfied();
     }
@@ -78,7 +81,7 @@ public class JmsSimpleRequestReplyTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:hello").process(new Processor() {
+                from("jms:queue:hello").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         exchange.getIn().setBody("Bye World");
                         assertNotNull(exchange.getIn().getHeader("JMSReplyTo"));

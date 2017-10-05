@@ -23,14 +23,17 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsSimpleHeaderTest extends CamelTestSupport {
 
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
 
     @Test
     public void testByteJMSHeaders() throws Exception {
@@ -38,7 +41,7 @@ public class JmsSimpleHeaderTest extends CamelTestSupport {
         mock.expectedMessageCount(1);
         mock.message(0).header("data").isEqualTo((byte)40);
 
-        template.sendBodyAndHeader("activemq:queue:foo", "Hello World", "data", (byte) 40);
+        template.sendBodyAndHeader("jms:queue:foo", "Hello World", "data", (byte) 40);
 
         assertMockEndpointsSatisfied();
     }
@@ -49,7 +52,7 @@ public class JmsSimpleHeaderTest extends CamelTestSupport {
         mock.expectedMessageCount(1);
         mock.message(0).header("data").isEqualTo('A');
 
-        template.sendBodyAndHeader("activemq:queue:foo", "Hello World", "data", 'A');
+        template.sendBodyAndHeader("jms:queue:foo", "Hello World", "data", 'A');
 
         assertMockEndpointsSatisfied();
     }
@@ -62,7 +65,7 @@ public class JmsSimpleHeaderTest extends CamelTestSupport {
         mock.expectedMessageCount(1);
         mock.message(0).header("data").isEqualTo(cs);
 
-        template.sendBodyAndHeader("activemq:queue:foo", "Hello World", "data", cs);
+        template.sendBodyAndHeader("jms:queue:foo", "Hello World", "data", cs);
 
         assertMockEndpointsSatisfied();
     }
@@ -81,7 +84,7 @@ public class JmsSimpleHeaderTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo").to("mock:result");
+                from("jms:queue:foo").to("mock:result");
             }
         };
     }

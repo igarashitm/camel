@@ -27,12 +27,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class ManagedJmsSelectorTest extends CamelTestSupport {
 
     @Override
@@ -44,7 +46,7 @@ public class ManagedJmsSelectorTest extends CamelTestSupport {
         CamelContext context = new DefaultCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        context.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        context.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return context;
     }
@@ -69,24 +71,24 @@ public class ManagedJmsSelectorTest extends CamelTestSupport {
 
         getMockEndpoint("mock:result").expectedBodiesReceived("Carlsberg");
 
-        template.sendBodyAndHeader("activemq:queue:start", "Pepsi", "brand", "softdrink");
-        template.sendBodyAndHeader("activemq:queue:start", "Carlsberg", "brand", "beer");
+        template.sendBodyAndHeader("jms:queue:start", "Pepsi", "brand", "softdrink");
+        template.sendBodyAndHeader("jms:queue:start", "Carlsberg", "brand", "beer");
 
         assertMockEndpointsSatisfied();
 
         // change the selector at runtime
 
-        resetMocks();
-
         mbeanServer.setAttribute(on, new Attribute("MessageSelector", "brand='softdrink'"));
 
         // give it a little time to adjust
         Thread.sleep(100);
+        // Artemis preserve old message and the route consume it once selector is changed
+        resetMocks();
 
         getMockEndpoint("mock:result").expectedBodiesReceived("Pepsi");
 
-        template.sendBodyAndHeader("activemq:queue:start", "Pepsi", "brand", "softdrink");
-        template.sendBodyAndHeader("activemq:queue:start", "Carlsberg", "brand", "beer");
+        template.sendBodyAndHeader("jms:queue:start", "Pepsi", "brand", "softdrink");
+        template.sendBodyAndHeader("jms:queue:start", "Carlsberg", "brand", "beer");
 
         assertMockEndpointsSatisfied();
 
@@ -99,7 +101,7 @@ public class ManagedJmsSelectorTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:start?cacheLevelName=CACHE_NONE&selector=brand='beer'").routeId("foo").to("log:foo").to("mock:result");
+                from("jms:queue:start?cacheLevelName=CACHE_NONE&selector=brand='beer'").routeId("foo").to("log:foo").to("mock:result");
             }
         };
     }

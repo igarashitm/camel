@@ -25,18 +25,18 @@
       <jmxAgent id="agent" disabled="true" />
 
       <route>
-         <from uri="activemq1:queue:foo" />
+         <from uri="jms1:queue:foo" />
          <to uri="mock:foo" />
       </route>
 
       <route>
-         <from uri="activemq2:queue:bar" />
+         <from uri="jms2:queue:bar" />
          <to uri="mock:bar" />
       </route>
 
    </camelContext>
 
-   <bean id="activemq1" class="org.apache.activemq.camel.component.ActiveMQComponent">
+   <bean id="jms1" class="org.apache.camel.component.jms.JmsComponent">
       <property name="connectionFactory">
          <bean class="org.apache.activemq.spring.ActiveMQConnectionFactory">
             <property name="brokerURL" value="vm://firstBroker?broker.persistent=false&amp;broker.useJmx=false" />
@@ -44,7 +44,7 @@
       </property>
    </bean>
 
-   <bean id="activemq2" class="org.apache.activemq.camel.component.ActiveMQComponent">
+   <bean id="jms2" class="org.apache.camel.component.jms.JmsComponent">
       <property name="connectionFactory">
          <bean class="org.apache.activemq.spring.ActiveMQConnectionFactory">
             <property name="brokerURL" value="vm://secondBroker?broker.persistent=false&amp;broker.useJmx=false" />

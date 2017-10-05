@@ -59,7 +59,7 @@ public class PerformanceRouteTest extends CamelTestSupport {
             } else {
                 type = "bronze";
             }
-            template.sendBodyAndHeader("activemq:queue:inbox", "Message " + i, "type", type);
+            template.sendBodyAndHeader("jms:queue:inbox", "Message " + i, "type", type);
         }
 
         assertMockEndpointsSatisfied();
@@ -78,7 +78,7 @@ public class PerformanceRouteTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -88,8 +88,8 @@ public class PerformanceRouteTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:inbox?concurrentConsumers=10")
-                    .to("activemq:topic:audit")
+                from("jms:queue:inbox?concurrentConsumers=10")
+                    .to("jms:topic:audit")
                     .choice()
                         .when(header("type").isEqualTo("gold"))
                             .to("direct:gold")
@@ -108,7 +108,7 @@ public class PerformanceRouteTest extends CamelTestSupport {
                 from("direct:bronze")
                     .to("mock:bronze");
 
-                from("activemq:topic:audit").to("mock:audit");
+                from("jms:topic:audit").to("mock:audit");
             }
         };
     }

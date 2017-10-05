@@ -23,15 +23,18 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsMQSpecialHeaderTest extends CamelTestSupport {
 
     @Test
@@ -40,7 +43,7 @@ public class JmsMQSpecialHeaderTest extends CamelTestSupport {
         mock.expectedBodiesReceived("Hello IBM");
         mock.message(0).header("JMS_IBM_Character_Set").isEqualTo("ISO8859_1");
 
-        template.sendBodyAndHeader("activemq:queue:ibm", "Hello IBM", "JMS_IBM_Character_Set", "ISO8859_1");
+        template.sendBodyAndHeader("jms:queue:ibm", "Hello IBM", "JMS_IBM_Character_Set", "ISO8859_1");
 
         assertMockEndpointsSatisfied();
     }
@@ -55,7 +58,7 @@ public class JmsMQSpecialHeaderTest extends CamelTestSupport {
         headers.put("JMSPriority", 3);
         headers.put("JMS_IBM_Character_Set", "ISO8859_1");
 
-        template.sendBodyAndHeaders("activemq:queue:ibm", "Hello IBM", headers);
+        template.sendBodyAndHeaders("jms:queue:ibm", "Hello IBM", headers);
 
         assertMockEndpointsSatisfied();
     }
@@ -64,7 +67,7 @@ public class JmsMQSpecialHeaderTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -73,7 +76,7 @@ public class JmsMQSpecialHeaderTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:ibm").to("mock:result");
+                from("jms:queue:ibm").to("mock:result");
             }
         };
     }

@@ -23,17 +23,20 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
+@RunWith(MultipleJmsImplementations.class)
 public class NoClassDefFoundErrorWrapExceptionTest extends CamelTestSupport {
 
     @Test
     public void testNoClassDef() throws Exception {
         try {
-            template.requestBody("activemq:start?transferException=true", "Hello World");
+            template.requestBody("jms:start?transferException=true", "Hello World");
             fail("Should throw exception");
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
@@ -52,7 +55,7 @@ public class NoClassDefFoundErrorWrapExceptionTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:start?transferException=true")
+                from("jms:start?transferException=true")
                         .process(new ProcessorA())
                         .process(new ProcessorB())
                         .process(new ProcessorFail());
@@ -63,7 +66,7 @@ public class NoClassDefFoundErrorWrapExceptionTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 

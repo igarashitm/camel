@@ -21,14 +21,17 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class AsyncConsumerInOutTest extends CamelTestSupport {
 
     @Test
@@ -39,8 +42,8 @@ public class AsyncConsumerInOutTest extends CamelTestSupport {
         // process the 2nd message on the queue
         getMockEndpoint("mock:result").expectedBodiesReceived("Hello World", "Bye Camel");
 
-        template.sendBody("activemq:queue:start", "Hello Camel");
-        template.sendBody("activemq:queue:start", "Hello World");
+        template.sendBody("jms:queue:start", "Hello Camel");
+        template.sendBody("jms:queue:start", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -51,7 +54,7 @@ public class AsyncConsumerInOutTest extends CamelTestSupport {
         camelContext.addComponent("async", new MyAsyncComponent());
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -62,17 +65,17 @@ public class AsyncConsumerInOutTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 // enable async in only mode on the consumer
-                from("activemq:queue:start?asyncConsumer=true")
+                from("jms:queue:start?asyncConsumer=true")
                         .choice()
                             .when(body().contains("Camel"))
                             .to("async:camel?delay=2000")
-                            .inOut("activemq:queue:camel")
+                            .inOut("jms:queue:camel")
                             .to("mock:result")
                         .otherwise()
                             .to("log:other")
                             .to("mock:result");
 
-                from("activemq:queue:camel")
+                from("jms:queue:camel")
                     .to("log:camel")
                     .transform(constant("Bye Camel"));
             }

@@ -23,18 +23,21 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
+import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplyFixedReplyToInEndpointTest extends CamelTestSupport {
 
     @Test
     public void testJmsRequestReplyTempReplyTo() throws Exception {
-        Exchange reply = template.request("activemq:queue:foo", new Processor() {
+        Exchange reply = template.request("jms:queue:foo", new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("World");
             }
@@ -42,46 +45,47 @@ public class JmsRequestReplyFixedReplyToInEndpointTest extends CamelTestSupport 
         assertEquals("Hello World", reply.getOut().getBody());
         assertTrue("Should have headers", reply.getOut().hasHeaders());
         String replyTo = reply.getOut().getHeader("JMSReplyTo", String.class);
-        assertTrue("Should be a temp queue", replyTo.startsWith("temp-queue"));
+        Assert.assertNotNull(replyTo);
+        Assert.assertFalse(replyTo.isEmpty());
     }
 
     @Test
     public void testJmsRequestReplyFixedReplyToInEndpoint() throws Exception {
-        Exchange reply = template.request("activemq:queue:foo?replyTo=bar", new Processor() {
+        Exchange reply = template.request("jms:queue:foo?replyTo=bar", new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("World");
             }
         });
         assertEquals("Hello World", reply.getOut().getBody());
         assertTrue("Should have headers", reply.getOut().hasHeaders());
-        assertEquals("queue://bar", reply.getOut().getHeader("JMSReplyTo", String.class));
+        assertTrue(reply.getOut().getHeader("JMSReplyTo", String.class).contains("bar"));
     }
 
     @Test
     public void testJmsRequestReplyFixedReplyToInEndpointTwoMessages() throws Exception {
-        Exchange reply = template.request("activemq:queue:foo?replyTo=bar", new Processor() {
+        Exchange reply = template.request("jms:queue:foo?replyTo=bar", new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("World");
             }
         });
         assertEquals("Hello World", reply.getOut().getBody());
         assertTrue("Should have headers", reply.getOut().hasHeaders());
-        assertEquals("queue://bar", reply.getOut().getHeader("JMSReplyTo", String.class));
+        assertTrue(reply.getOut().getHeader("JMSReplyTo", String.class).contains("bar"));
 
-        reply = template.request("activemq:queue:foo?replyTo=bar", new Processor() {
+        reply = template.request("jms:queue:foo?replyTo=bar", new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("Moon");
             }
         });
         assertEquals("Hello Moon", reply.getOut().getBody());
         assertTrue("Should have headers", reply.getOut().hasHeaders());
-        assertEquals("queue://bar", reply.getOut().getHeader("JMSReplyTo", String.class));
+        assertTrue(reply.getOut().getHeader("JMSReplyTo", String.class).contains("bar"));
     }
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -90,7 +94,7 @@ public class JmsRequestReplyFixedReplyToInEndpointTest extends CamelTestSupport 
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .transform(body().prepend("Hello "));
             }
         };

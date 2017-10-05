@@ -32,7 +32,7 @@ public class MyBean {
     @EndpointInject(uri = "mock:result")
     private ProducerTemplate producer;
 
-    @Consume(uri = "activemq:Test.BindingQueue")
+    @Consume(uri = "jms:Test.BindingQueue")
     public void myMethod(@Headers Map<?, ?> headers, String body) {
         this.headers = headers;
         this.body = body;

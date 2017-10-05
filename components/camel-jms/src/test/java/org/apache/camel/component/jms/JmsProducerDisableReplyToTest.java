@@ -21,12 +21,14 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsProducerDisableReplyToTest extends CamelTestSupport {
 
     @Test
@@ -34,7 +36,7 @@ public class JmsProducerDisableReplyToTest extends CamelTestSupport {
         // must start CamelContext because use route builder is false
         context.start();
 
-        String url = "activemq:queue:foo?disableReplyTo=true";
+        String url = "jms:queue:foo?disableReplyTo=true";
         template.requestBody(url, "Hello World");
 
         Object out = consumer.receiveBody(url, 5000);
@@ -47,7 +49,7 @@ public class JmsProducerDisableReplyToTest extends CamelTestSupport {
         // must be persistent so the consumer can receive the message as we receive AFTER the message
         // has been published
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createPersistentConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }

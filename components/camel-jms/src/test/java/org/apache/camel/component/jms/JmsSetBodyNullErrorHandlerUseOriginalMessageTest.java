@@ -24,15 +24,17 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
+@RunWith(MultipleJmsImplementations.class)
 public class JmsSetBodyNullErrorHandlerUseOriginalMessageTest extends CamelTestSupport {
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createPersistentConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -42,11 +44,11 @@ public class JmsSetBodyNullErrorHandlerUseOriginalMessageTest extends CamelTestS
         getMockEndpoint("mock:bar").expectedMessageCount(1);
         getMockEndpoint("mock:bar").message(0).body().isNull();
 
-        template.sendBody("activemq:queue:foo", "Hello World");
+        template.sendBody("jms:queue:foo", "Hello World");
 
         assertMockEndpointsSatisfied();
 
-        String body = consumer.receiveBody("activemq:queue:dead", 5000, String.class);
+        String body = consumer.receiveBody("jms:queue:dead", 5000, String.class);
         assertEquals("Hello World", body);
     }
 
@@ -55,9 +57,9 @@ public class JmsSetBodyNullErrorHandlerUseOriginalMessageTest extends CamelTestS
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                errorHandler(deadLetterChannel("activemq:queue:dead").useOriginalMessage());
+                errorHandler(deadLetterChannel("jms:queue:dead").useOriginalMessage());
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .to("mock:foo")
                     .process(new Processor() {
                         @Override

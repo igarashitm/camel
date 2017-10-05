@@ -27,4 +27,13 @@ public class JmsRouteUsingSpringJMSTemplateTest extends JmsRouteUsingSpringAndJm
         return new ClassPathXmlApplicationContext("org/apache/camel/component/jms/jmsRouteUsingSpringJMSTemplate.xml");
     }
 
+    protected void sendExchange(final Object expectedBody) {
+        try {
+            super.sendExchange(expectedBody);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
 }

@@ -27,12 +27,14 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * Tests filtering using Camel Test
  * @version 
  */
 // START SNIPPET: example
+@RunWith(MultipleJmsImplementations.class)
 public class JmsFilterTest extends CamelTestSupport {
 
     @EndpointInject(uri = "mock:result")

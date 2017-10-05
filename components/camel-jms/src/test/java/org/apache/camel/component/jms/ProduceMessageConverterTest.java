@@ -28,6 +28,7 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 
@@ -36,6 +37,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class ProduceMessageConverterTest extends CamelTestSupport {
 
     @Override
@@ -49,7 +51,7 @@ public class ProduceMessageConverterTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -59,7 +61,7 @@ public class ProduceMessageConverterTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedBodiesReceived("Hello World");
 
-        template.sendBody("activemq:queue:hello?messageConverter=#myMessageConverter", "World");
+        template.sendBody("jms:queue:hello?messageConverter=#myMessageConverter", "World");
 
         assertMockEndpointsSatisfied();
     }
@@ -67,7 +69,7 @@ public class ProduceMessageConverterTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:hello").to("mock:result");
+                from("jms:queue:hello").to("mock:result");
             }
         };
     }

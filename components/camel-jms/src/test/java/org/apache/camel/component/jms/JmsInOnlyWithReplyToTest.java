@@ -22,12 +22,14 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOnlyWithReplyToTest extends CamelTestSupport {
 
     @Test
@@ -44,7 +46,7 @@ public class JmsInOnlyWithReplyToTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -54,16 +56,16 @@ public class JmsInOnlyWithReplyToTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 from("direct:start")
-                    .to("activemq:queue:foo?replyTo=queue:bar&preserveMessageQos=true")
+                    .to("jms:queue:foo?replyTo=queue:bar&preserveMessageQos=true")
                     .to("mock:done");
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .to("log:foo?showAll=true", "mock:foo")
                     .transform(body().prepend("Bye "));
 
                 // we should disable reply to to avoid sending the message back to our self
                 // after we have consumed it
-                from("activemq:queue:bar?disableReplyTo=true")
+                from("jms:queue:bar?disableReplyTo=true")
                     .to("log:bar?showAll=true", "mock:bar");
             }
         };

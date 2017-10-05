@@ -32,10 +32,12 @@ import org.apache.camel.ExchangePattern;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 
@@ -46,6 +48,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  * 
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsJMSReplyToEndpointUsingInOutTest extends CamelTestSupport {
     private JmsComponent amq;
 
@@ -103,14 +106,14 @@ public class JmsJMSReplyToEndpointUsingInOutTest extends CamelTestSupport {
         return new RouteBuilder() {
 
             public void configure() throws Exception {
-                from("activemq:queue:hello")
+                from("jms:queue:hello")
                     .process(new Processor() {
                         public void process(Exchange exchange) throws Exception {
                             exchange.getOut().setBody("What's your name");
                         }
                     })
                     // use in out to get a reply as well
-                    .to(ExchangePattern.InOut, "activemq:queue:nameRequestor?replyTo=queue:namedReplyQueue")
+                    .to(ExchangePattern.InOut, "jms:queue:nameRequestor?replyTo=queue:namedReplyQueue")
                     // and send the reply to our mock for validation
                     .to("mock:result");
             }
@@ -120,8 +123,8 @@ public class JmsJMSReplyToEndpointUsingInOutTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
-        amq = camelContext.getComponent("activemq", JmsComponent.class);
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
+        amq = camelContext.getComponent("jms", JmsComponent.class);
         return camelContext;
     }
 

@@ -46,7 +46,7 @@ public class JMSTransactionErrorHandlerTest extends CamelSpringTestSupport {
         // and not JMS doing the redelivery
         mock.message(0).header("JMSRedelivered").isEqualTo(false);
 
-        template.sendBody("activemq:queue:okay", "Hello World");
+        template.sendBody("jms:queue:okay", "Hello World");
 
         mock.assertIsSatisfied();
     }

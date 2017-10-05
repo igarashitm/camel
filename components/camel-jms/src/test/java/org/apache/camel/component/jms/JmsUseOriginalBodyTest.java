@@ -25,11 +25,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test for useOriginalBody unit test
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsUseOriginalBodyTest extends CamelTestSupport {
 
     @Test
@@ -37,7 +40,7 @@ public class JmsUseOriginalBodyTest extends CamelTestSupport {
         MockEndpoint dead = getMockEndpoint("mock:a");
         dead.expectedBodiesReceived("Hello");
 
-        template.sendBody("activemq:queue:a", "Hello");
+        template.sendBody("jms:queue:a", "Hello");
 
         assertMockEndpointsSatisfied();
     }
@@ -47,7 +50,7 @@ public class JmsUseOriginalBodyTest extends CamelTestSupport {
         MockEndpoint dead = getMockEndpoint("mock:b");
         dead.expectedBodiesReceived("Hello World");
 
-        template.sendBody("activemq:queue:b", "Hello");
+        template.sendBody("jms:queue:b", "Hello");
 
         assertMockEndpointsSatisfied();
     }
@@ -57,7 +60,7 @@ public class JmsUseOriginalBodyTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:a")
+                from("jms:queue:a")
                     .onException(IllegalArgumentException.class)
                         .handled(true)
                         .useOriginalMessage()
@@ -67,7 +70,7 @@ public class JmsUseOriginalBodyTest extends CamelTestSupport {
                     .setBody(body().append(" World"))
                     .process(new MyThrowProcessor());
 
-                from("activemq:queue:b")
+                from("jms:queue:b")
                     .onException(IllegalArgumentException.class)
                         .handled(true)
                         .maximumRedeliveries(2)
@@ -95,7 +98,7 @@ public class JmsUseOriginalBodyTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }

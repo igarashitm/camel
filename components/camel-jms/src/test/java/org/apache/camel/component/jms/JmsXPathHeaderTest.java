@@ -22,6 +22,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
@@ -30,6 +31,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  *
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsXPathHeaderTest extends CamelTestSupport {
 
     @Test
@@ -37,7 +39,7 @@ public class JmsXPathHeaderTest extends CamelTestSupport {
         getMockEndpoint("mock:true").expectedMessageCount(1);
         getMockEndpoint("mock:other").expectedMessageCount(0);
 
-        template.sendBodyAndHeader("activemq:queue:in", "<hello>World</hello>", "foo", "true");
+        template.sendBodyAndHeader("jms:queue:in", "<hello>World</hello>", "foo", "true");
 
         assertMockEndpointsSatisfied();
     }
@@ -47,7 +49,7 @@ public class JmsXPathHeaderTest extends CamelTestSupport {
         getMockEndpoint("mock:true").expectedMessageCount(0);
         getMockEndpoint("mock:other").expectedMessageCount(1);
 
-        template.sendBodyAndHeader("activemq:queue:in", "<hello>World</hello>", "foo", "false");
+        template.sendBodyAndHeader("jms:queue:in", "<hello>World</hello>", "foo", "false");
 
         assertMockEndpointsSatisfied();
     }
@@ -57,7 +59,7 @@ public class JmsXPathHeaderTest extends CamelTestSupport {
         getMockEndpoint("mock:true").expectedMessageCount(0);
         getMockEndpoint("mock:other").expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:in", "<hello>World</hello>");
+        template.sendBody("jms:queue:in", "<hello>World</hello>");
 
         assertMockEndpointsSatisfied();
     }
@@ -66,7 +68,7 @@ public class JmsXPathHeaderTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -76,16 +78,16 @@ public class JmsXPathHeaderTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:in")
+                from("jms:queue:in")
                     .choice()
                         .when().xpath("$foo = 'true'")
-                            .to("activemq:queue:true")
+                            .to("jms:queue:true")
                         .otherwise()
-                            .to("activemq:queue:other")
+                            .to("jms:queue:other")
                         .end();
 
-                from("activemq:queue:true").to("mock:true");
-                from("activemq:queue:other").to("mock:other");
+                from("jms:queue:true").to("mock:true");
+                from("jms:queue:other").to("mock:other");
             }
         };
     }

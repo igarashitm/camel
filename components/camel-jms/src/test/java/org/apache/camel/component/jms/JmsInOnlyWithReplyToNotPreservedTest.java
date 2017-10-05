@@ -22,12 +22,14 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOnlyWithReplyToNotPreservedTest extends CamelTestSupport {
 
     @Test
@@ -40,14 +42,14 @@ public class JmsInOnlyWithReplyToNotPreservedTest extends CamelTestSupport {
         assertMockEndpointsSatisfied();
 
         // there should be no messages on the bar queue
-        Object msg = consumer.receiveBody("activemq:queue:bar", 1000);
+        Object msg = consumer.receiveBody("jms:queue:bar", 1000);
         assertNull("Should be no message on bar queue", msg);
     }
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -57,10 +59,10 @@ public class JmsInOnlyWithReplyToNotPreservedTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 from("direct:start")
-                    .to("activemq:queue:foo?replyTo=queue:bar")
+                    .to("jms:queue:foo?replyTo=queue:bar")
                     .to("mock:done");
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .to("log:foo?showAll=true", "mock:foo")
                     .transform(body().prepend("Bye "));
             }

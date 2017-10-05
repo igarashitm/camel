@@ -24,19 +24,21 @@ import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test for testing request timeout with a InOut exchange.
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRouteTimeoutCheckerIntervalTest extends CamelTestSupport {
 
     @Test
     public void testTimeout() throws Exception {
         try {
             // send a in-out with a timeout for 1 sec 
-            template.requestBody("activemq:queue:slow?requestTimeout=1000", "Hello World");
+            template.requestBody("jms:queue:slow?requestTimeout=1000", "Hello World");
             fail("Should have timed out with an exception");
         } catch (RuntimeCamelException e) {
             assertTrue("Should have timed out with an exception", e.getCause() instanceof ExchangeTimedOutException);
@@ -47,7 +49,7 @@ public class JmsRouteTimeoutCheckerIntervalTest extends CamelTestSupport {
     public void testNoTimeout() throws Exception {
         // START SNIPPET: e1
         // send a in-out with a timeout for 5 sec
-        Object out = template.requestBody("activemq:queue:slow?requestTimeout=5000", "Hello World");
+        Object out = template.requestBody("jms:queue:slow?requestTimeout=5000", "Hello World");
         // END SNIPPET: e1
         assertEquals("Bye World", out);
     }
@@ -59,7 +61,7 @@ public class JmsRouteTimeoutCheckerIntervalTest extends CamelTestSupport {
         JmsComponent activmq = jmsComponentAutoAcknowledge(connectionFactory);
         // check 4 times per second
         activmq.setRequestTimeoutCheckerInterval(250);
-        camelContext.addComponent("activemq", activmq);
+        camelContext.addComponent("jms", activmq);
 
         return camelContext;
     }
@@ -67,7 +69,7 @@ public class JmsRouteTimeoutCheckerIntervalTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:slow").delay(3000).transform(constant("Bye World"));
+                from("jms:queue:slow").delay(3000).transform(constant("Bye World"));
             }
         };
     }

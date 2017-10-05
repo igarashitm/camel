@@ -30,7 +30,7 @@
         <!-- and now our route using the XML syntax -->
         <camel:route errorHandlerRef="errorHandler">
             <!-- 1: from the jms queue -->
-            <camel:from uri="activemq:queue:okay"/>
+            <camel:from uri="jms:queue:okay"/>
             <!-- 2: setup the transactional boundaries to require a transaction -->
             <camel:transacted ref="PROPAGATION_REQUIRED"/>
             <!-- 3: call our business logic that is myProcessor -->
@@ -70,7 +70,7 @@
         <property name="concurrentConsumers" value="1"/>
     </bean>
 
-    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
         <property name="configuration" ref="jmsConfig"/>
     </bean>
 

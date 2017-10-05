@@ -24,7 +24,7 @@
        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
     ">
 
-    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
         <property name="connectionFactory">
             <bean class="org.apache.activemq.ActiveMQConnectionFactory">
                 <property name="brokerURL" value="vm://localhost?broker.persistent=false&amp;broker.useJmx=false"/>
@@ -36,25 +36,25 @@
         <jmxAgent id="agent" disabled="true"/>
 
         <route>
-            <from uri="activemq:queue:in"/>
+            <from uri="jms:queue:in"/>
             <choice>
                 <when>
                     <xpath>$foo = 'true'</xpath>
-                    <to uri="activemq:queue:true"/>
+                    <to uri="jms:queue:true"/>
                 </when>
                 <otherwise>
-                    <to uri="activemq:queue:other"/>
+                    <to uri="jms:queue:other"/>
                 </otherwise>
             </choice>
         </route>
 
         <route>
-            <from uri="activemq:queue:true"/>
+            <from uri="jms:queue:true"/>
             <to uri="mock:true"/>
         </route>
 
         <route>
-            <from uri="activemq:queue:other"/>
+            <from uri="jms:queue:other"/>
             <to uri="mock:other"/>
         </route>
 

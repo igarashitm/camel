@@ -25,9 +25,11 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
@@ -37,6 +39,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  *
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class MQSeriesHeaderTest extends CamelTestSupport {
 
     @Test
@@ -47,7 +50,7 @@ public class MQSeriesHeaderTest extends CamelTestSupport {
         Map<String, Object> headers = new HashMap<String, Object>();
         headers.put("JMSXAppID", "ABC");
 
-        template.sendBodyAndHeaders("activemq:test.a", "Hello World!", headers);
+        template.sendBodyAndHeaders("jms:test.a", "Hello World!", headers);
 
         endpoint.assertIsSatisfied();
 
@@ -62,7 +65,7 @@ public class MQSeriesHeaderTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -70,8 +73,8 @@ public class MQSeriesHeaderTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:test.a").to("activemq:test.b");
-                from("activemq:test.b").to("mock:result");
+                from("jms:test.a").to("jms:test.b");
+                from("jms:test.b").to("mock:result");
             }
         };
     }

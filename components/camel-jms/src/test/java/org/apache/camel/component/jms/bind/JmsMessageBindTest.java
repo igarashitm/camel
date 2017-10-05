@@ -40,7 +40,7 @@ public class JmsMessageBindTest extends CamelSpringTestSupport {
         // this header should not be sent as its value cannot be serialized 
         headers.put("binding", new JmsBinding());
 
-        template.sendBodyAndHeaders("activemq:Test.BindingQueue", "SomeBody", headers);
+        template.sendBodyAndHeaders("jms:Test.BindingQueue", "SomeBody", headers);
 
         // lets wait for the method to be invoked
         assertMockEndpointsSatisfied();

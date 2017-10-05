@@ -25,12 +25,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class ManagedJmsEndpointTopicTest extends CamelTestSupport {
 
     @Override
@@ -42,7 +44,7 @@ public class ManagedJmsEndpointTopicTest extends CamelTestSupport {
         CamelContext context = new DefaultCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        context.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        context.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return context;
     }
@@ -55,9 +57,9 @@ public class ManagedJmsEndpointTopicTest extends CamelTestSupport {
     public void testJmsEndpoint() throws Exception {
         MBeanServer mbeanServer = getMBeanServer();
 
-        ObjectName name = ObjectName.getInstance("org.apache.camel:context=camel-1,type=endpoints,name=\"activemq://topic:start\"");
+        ObjectName name = ObjectName.getInstance("org.apache.camel:context=" + context.getName() + ",type=endpoints,name=\"jms://topic:start\"");
         String uri = (String) mbeanServer.getAttribute(name, "EndpointUri");
-        assertEquals("activemq://topic:start", uri);
+        assertEquals("jms://topic:start", uri);
 
         Boolean singleton = (Boolean) mbeanServer.getAttribute(name, "Singleton");
         assertTrue(singleton.booleanValue());
@@ -67,7 +69,7 @@ public class ManagedJmsEndpointTopicTest extends CamelTestSupport {
 
         getMockEndpoint("mock:result").expectedMessageCount(2);
 
-        template.sendBody("activemq:topic:start", "Hello World");
+        template.sendBody("jms:topic:start", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -77,9 +79,9 @@ public class ManagedJmsEndpointTopicTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:topic:start").routeId("foo").to("log:foo").to("mock:result");
+                from("jms:topic:start").routeId("foo").to("log:foo").to("mock:result");
 
-                from("activemq:topic:start").routeId("bar").to("log:bar").to("mock:result");
+                from("jms:topic:start").routeId("bar").to("log:bar").to("mock:result");
             }
         };
     }

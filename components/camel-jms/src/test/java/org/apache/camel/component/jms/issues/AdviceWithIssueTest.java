@@ -26,8 +26,8 @@ import org.junit.Test;
 
 public class AdviceWithIssueTest extends CamelTestSupport {
 
-    final String pub = "activemq:topic:integrations?allowNullBody=false&asyncConsumer=true&concurrentConsumers=10&jmsMessageType=Map&preserveMessageQos=true";
-    final String advicedPub = "activemq:topic:integrations";
+    final String pub = "jms:topic:integrations?allowNullBody=false&asyncConsumer=true&concurrentConsumers=10&jmsMessageType=Map&preserveMessageQos=true";
+    final String advicedPub = "jms:topic:integrations";
 
     @Override
     public boolean isUseAdviceWith() {

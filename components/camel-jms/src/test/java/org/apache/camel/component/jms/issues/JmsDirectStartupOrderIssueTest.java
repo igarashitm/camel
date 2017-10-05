@@ -22,25 +22,28 @@ import javax.jms.ConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.spi.RouteStartupOrder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  *
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsDirectStartupOrderIssueTest extends CamelTestSupport {
 
     @Test
     public void testJmsDirectStartupOrderIssue() throws Exception {
         // send messages to queue so there is messages on the queue before we start the route
-        template.sendBody("activemq:queue:foo", "Hello World");
-        template.sendBody("activemq:queue:foo", "Hello Camel");
-        template.sendBody("activemq:queue:foo", "Bye World");
-        template.sendBody("activemq:queue:foo", "Bye Camel");
+        template.sendBody("jms:queue:foo", "Hello World");
+        template.sendBody("jms:queue:foo", "Hello Camel");
+        template.sendBody("jms:queue:foo", "Bye World");
+        template.sendBody("jms:queue:foo", "Bye Camel");
 
         context.startRoute("amq");
 
@@ -61,7 +64,7 @@ public class JmsDirectStartupOrderIssueTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createPersistentConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -69,7 +72,7 @@ public class JmsDirectStartupOrderIssueTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:foo").routeId("amq").startupOrder(100).autoStartup(false)
+                from("jms:queue:foo").routeId("amq").startupOrder(100).autoStartup(false)
                     .to("direct:foo");
 
                 from("direct:foo").routeId("direct").startupOrder(1)

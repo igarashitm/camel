@@ -44,9 +44,9 @@ public class QueueToQueueRequestReplyTransactionTest extends AbstractTransaction
             public void configure() throws Exception {
                 Policy required = lookup("PROPAGATION_REQUIRED_POLICY", SpringTransactionPolicy.class);
 
-                from("activemq:queue:foo").policy(required).process(cp).to("activemq-1:queue:bar?replyTo=queue:bar.reply");
+                from("jms:queue:foo").policy(required).process(cp).to("jms-1:queue:bar?replyTo=queue:bar.reply");
 
-                from("activemq-1:queue:bar").process(new Processor() {
+                from("jms-1:queue:bar").process(new Processor() {
                     public void process(Exchange e) {
                         String request = e.getIn().getBody(String.class);
                         Message out = e.getOut();
@@ -61,7 +61,7 @@ public class QueueToQueueRequestReplyTransactionTest extends AbstractTransaction
         });
 
         for (int i = 0; i < 5; ++i) {
-            Object reply = template.requestBody("activemq:queue:foo", "blah" + i);
+            Object reply = template.requestBody("jms:queue:foo", "blah" + i);
             assertTrue("Received unexpeced reply", reply.equals("Re: blah" + i));
             assertTrue(cp.getErrorMessage(), cp.getErrorMessage() == null);
         }

@@ -23,15 +23,18 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test for sending the filename for file producer over the JMS wire.
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsFilenameHeaderTest extends CamelTestSupport {
 
     @Test
@@ -52,7 +55,7 @@ public class JmsFilenameHeaderTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -60,8 +63,8 @@ public class JmsFilenameHeaderTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("direct:in").to("activemq:test.a");
-                from("activemq:test.a").to("direct:save");
+                from("direct:in").to("jms:test.a");
+                from("jms:test.a").to("direct:save");
 
                 from("direct:save").to("file://target?fileExist=Override", "mock:result");
             }

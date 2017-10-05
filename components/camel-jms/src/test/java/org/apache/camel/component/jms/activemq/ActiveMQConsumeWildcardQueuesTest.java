@@ -37,10 +37,10 @@ public class ActiveMQConsumeWildcardQueuesTest extends CamelTestSupport {
         getMockEndpoint("mock:1st").expectedBodiesReceived("D");
         getMockEndpoint("mock:other").expectedBodiesReceivedInAnyOrder("A", "C");
 
-        template.sendBody("activemq:queue:sport.pl.manu", "A");
-        template.sendBody("activemq:queue:sport.pl.chelsea", "B");
-        template.sendBody("activemq:queue:sport.pl.arsenal", "C");
-        template.sendBody("activemq:queue:sport.1st.leeds", "D");
+        template.sendBody("jms:queue:sport.pl.manu", "A");
+        template.sendBody("jms:queue:sport.pl.chelsea", "B");
+        template.sendBody("jms:queue:sport.pl.arsenal", "C");
+        template.sendBody("jms:queue:sport.1st.leeds", "D");
 
         assertMockEndpointsSatisfied();
     }
@@ -50,7 +50,7 @@ public class ActiveMQConsumeWildcardQueuesTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.ACTIVEMQ.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -61,7 +61,7 @@ public class ActiveMQConsumeWildcardQueuesTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 // use wildcard to consume from all sports
-                from("activemq:queue:sport.>")
+                from("jms:queue:sport.>")
                     .to("log:received?showHeaders=true")
                     .choice()
                         // the JMSDestination contains from which queue the message was consumed from

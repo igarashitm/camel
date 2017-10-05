@@ -25,10 +25,12 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.jms.core.JmsTemplate;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
@@ -36,6 +38,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsCustomJMSReplyToIssueTest extends CamelTestSupport {
 
     private JmsComponent amq;
@@ -57,10 +60,10 @@ public class JmsCustomJMSReplyToIssueTest extends CamelTestSupport {
 
         // there should be a JMSReplyTo so we know where to send the reply
         Destination replyTo = msg.getJMSReplyTo();
-        assertEquals("queue://myReplyQueue", replyTo.toString());
+        assertTrue(replyTo.toString().contains("myReplyQueue"));
 
         // send reply
-        template.sendBody("activemq:" + replyTo.toString(), "Bye World");
+        template.sendBody("jms:queue:myReplyQueue", "Bye World");
 
         assertMockEndpointsSatisfied();
     }
@@ -68,8 +71,8 @@ public class JmsCustomJMSReplyToIssueTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
-        amq = camelContext.getComponent("activemq", JmsComponent.class);
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
+        amq = camelContext.getComponent("jms", JmsComponent.class);
 
         return camelContext;
     }
@@ -84,9 +87,9 @@ public class JmsCustomJMSReplyToIssueTest extends CamelTestSupport {
                         exchange.getOut().setHeader("JMSReplyTo", "myReplyQueue");
                     }
                 // must preserve QoS so Camel will send JMSReplyTo even if message is inOnly
-                }).to("activemq:queue:in?preserveMessageQos=true");
+                }).to("jms:queue:in?preserveMessageQos=true");
 
-                from("activemq:queue:myReplyQueue").to("mock:result");
+                from("jms:queue:myReplyQueue").to("mock:result");
             }
         };
     }

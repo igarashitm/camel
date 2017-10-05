@@ -22,14 +22,17 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRoutingSlipIssueTest extends CamelTestSupport {
 
     @Test
@@ -39,7 +42,7 @@ public class JmsRoutingSlipIssueTest extends CamelTestSupport {
         getMockEndpoint("mock:c").expectedBodiesReceived("HelloAB");
         getMockEndpoint("mock:result").expectedBodiesReceived("HelloABC");
 
-        String slip = "activemq:queue:a,activemq:queue:b,activemq:queue:c";
+        String slip = "jms:queue:a,jms:queue:b,jms:queue:c";
         template.sendBodyAndHeader("direct:start", "Hello", "mySlip", slip);
 
         assertMockEndpointsSatisfied();
@@ -48,7 +51,7 @@ public class JmsRoutingSlipIssueTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -63,15 +66,15 @@ public class JmsRoutingSlipIssueTest extends CamelTestSupport {
                     .routingSlip(header("mySlip"))
                     .to("mock:result");
 
-                from("activemq:queue:a")
+                from("jms:queue:a")
                     .to("mock:a")
                     .transform(body().append("A"));
 
-                from("activemq:queue:b")
+                from("jms:queue:b")
                     .to("mock:b")
                     .transform(body().append("B"));
 
-                from("activemq:queue:c")
+                from("jms:queue:c")
                     .to("mock:c")
                     .transform(body().append("C"));
             }

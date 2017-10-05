@@ -23,14 +23,17 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class AsyncJmsProducerTest extends CamelTestSupport {
 
     private static String beforeThreadName;
@@ -54,7 +57,7 @@ public class AsyncJmsProducerTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -72,7 +75,7 @@ public class AsyncJmsProducerTest extends CamelTestSupport {
                                 beforeThreadName = Thread.currentThread().getName();
                             }
                         })
-                        .to("activemq:queue:foo")
+                        .to("jms:queue:foo")
                         .process(new Processor() {
                             public void process(Exchange exchange) throws Exception {
                                 afterThreadName = Thread.currentThread().getName();
@@ -82,7 +85,7 @@ public class AsyncJmsProducerTest extends CamelTestSupport {
                         .to("mock:after")
                         .to("mock:result");
 
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .transform(constant("Bye Camel"));
             }
         };

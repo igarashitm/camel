@@ -23,8 +23,10 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
@@ -33,6 +35,7 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  *
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsMessageHeaderContentBasedRouterTest extends CamelTestSupport {
 
     @Test
@@ -40,7 +43,7 @@ public class JmsMessageHeaderContentBasedRouterTest extends CamelTestSupport {
         getMockEndpoint("mock:a").expectedMessageCount(0);
         getMockEndpoint("mock:b").expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:start", "Hello World");
+        template.sendBody("jms:queue:start", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -48,7 +51,7 @@ public class JmsMessageHeaderContentBasedRouterTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -60,7 +63,7 @@ public class JmsMessageHeaderContentBasedRouterTest extends CamelTestSupport {
                 Predicate isA = header("route").isEqualTo("a");
                 Predicate isB = header("route").isEqualTo("b");
 
-                from("activemq:queue:start")
+                from("jms:queue:start")
                     .bean(MyPreProcessorBean.class, "determineRouting")
                     .choice()
                         .when(isA).to("mock:a")

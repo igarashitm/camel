@@ -50,7 +50,7 @@ public class JmsTXForceShutdownIssueTest extends CamelSpringTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:inflight");
         mock.expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:inbox", "Hello World");
+        template.sendBody("jms:queue:inbox", "Hello World");
 
         assertMockEndpointsSatisfied();
 

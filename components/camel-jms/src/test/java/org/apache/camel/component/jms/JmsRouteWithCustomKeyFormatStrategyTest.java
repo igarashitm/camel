@@ -16,19 +16,52 @@
  */
 package org.apache.camel.component.jms;
 
+import javax.jms.ConnectionFactory;
+
+import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jms.JmsKeyFormatStrategy;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.util.ObjectHelper;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * With the passthrough option
  *
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRouteWithCustomKeyFormatStrategyTest extends JmsRouteWithDefaultKeyFormatStrategyTest {
 
+    // TODO CAMEL-11238 no message is received
+    @MultipleJmsImplementations.Option(ignore=MultipleJmsImplementations.Broker.Artemis)
+    @Test
+    @Override
+    public void testWithPlainHeader() throws Exception {
+        super.testWithPlainHeader();
+    }
+
+    // TODO CAMEL-11238 Artemis is right, hyphen '-' shouldn't be used for property name. Why it passes for ActiveMQ?
+    @MultipleJmsImplementations.Option(ignore=MultipleJmsImplementations.Broker.Artemis)
+    @Test
+    @Override
+    public void testWithMixedHeader() throws Exception {
+        super.testWithMixedHeader();
+    }
+
+    // TODO CAMEL-11238 no message is received
+    @MultipleJmsImplementations.Option(ignore=MultipleJmsImplementations.Broker.Artemis)
+    @Test
+    @Override
+    public void testNoHeader() throws Exception {
+        super.testWithMixedHeader();
+    }
+
     protected String getUri() {
-        return "activemq:queue:foo?jmsKeyFormatStrategy=#myJmsKeyStrategy";
+        return "jms:queue:foo?jmsKeyFormatStrategy=#myJmsKeyStrategy";
     }
 
     @Override

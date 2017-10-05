@@ -40,7 +40,7 @@ public class JmsTestConnectionOnStartupTest extends CamelTestSupport {
         context.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo?testConnectionOnStartup=true").to("mock:foo");
+                from("jms:queue:foo?testConnectionOnStartup=true").to("mock:foo");
             }
         });
 
@@ -48,7 +48,7 @@ public class JmsTestConnectionOnStartupTest extends CamelTestSupport {
             context.start();
             fail("Should have thrown an exception");
         } catch (FailedToCreateConsumerException e) {
-            assertEquals("Failed to create Consumer for endpoint: activemq://queue:foo?testConnectionOnStartup=true. "
+            assertEquals("Failed to create Consumer for endpoint: jms://queue:foo?testConnectionOnStartup=true. "
                 + "Reason: Cannot get JMS Connection on startup for destination foo", e.getMessage());
         }
     }
@@ -58,7 +58,7 @@ public class JmsTestConnectionOnStartupTest extends CamelTestSupport {
         context.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("direct:start").to("activemq:queue:foo?testConnectionOnStartup=true");
+                from("direct:start").to("jms:queue:foo?testConnectionOnStartup=true");
             }
         });
 
@@ -66,7 +66,7 @@ public class JmsTestConnectionOnStartupTest extends CamelTestSupport {
             context.start();
             fail("Should have thrown an exception");
         } catch (FailedToCreateProducerException e) {
-            assertTrue(e.getMessage().startsWith("Failed to create Producer for endpoint: activemq://queue:foo?testConnectionOnStartup=true."));
+            assertTrue(e.getMessage().startsWith("Failed to create Producer for endpoint: jms://queue:foo?testConnectionOnStartup=true."));
             assertTrue(e.getMessage().contains("java.net.ConnectException"));
         }
     }
@@ -77,7 +77,7 @@ public class JmsTestConnectionOnStartupTest extends CamelTestSupport {
         ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 
         when(connectionFactory.createConnection()).thenThrow(new JMSException("java.net.ConnectException"));
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }

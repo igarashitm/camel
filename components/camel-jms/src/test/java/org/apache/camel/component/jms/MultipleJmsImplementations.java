@@ -16,16 +16,25 @@
  */
 package org.apache.camel.component.jms;
 
+import java.lang.annotation.Annotation;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.camel.component.jms.MultipleJmsImplementations.Broker;
+import org.apache.camel.component.jms.MultipleJmsImplementations.Option;
 import org.apache.camel.component.jms.activemq.ActiveMqJmsTestHelper;
 import org.apache.camel.component.jms.artemis.ArtemisJmsTestHelper;
+import org.junit.internal.builders.IgnoredClassRunner;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runner.Runner;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.Suite;
@@ -33,6 +42,13 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 public final class MultipleJmsImplementations extends Suite {
+
+    public enum Broker { ActiveMQ, Artemis }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface Option {
+        Broker[] ignore() default {};
+    }
 
     static final class JmsHelperRule extends ExternalResource {
 
@@ -59,18 +75,18 @@ public final class MultipleJmsImplementations extends Suite {
 
         private final JmsTestHelper helper;
 
-        private final String name;
+        private final Broker broker;
 
-        private WithSpecificJmsHelperRunner(final Class<?> klass, final String name, final JmsTestHelper helper)
+        private WithSpecificJmsHelperRunner(final Class<?> klass, final Broker broker, final JmsTestHelper helper)
             throws InitializationError {
             super(klass);
-            this.name = name;
+            this.broker = broker;
             this.helper = helper;
         }
 
         @Override
         protected String getName() {
-            return name;
+            return broker.name();
         }
 
         @Override
@@ -84,27 +100,55 @@ public final class MultipleJmsImplementations extends Suite {
 
         @Override
         protected String testName(final FrameworkMethod method) {
-            return method.getName() + " [" + name + "]";
+            return method.getName() + " [" + broker.name() + "]";
         }
+
+        @Override
+        protected boolean isIgnored(FrameworkMethod child) {
+            Option option = child.getMethod().getAnnotation(Option.class);
+            if (option != null) {
+                for (Broker ignored : option.ignore()) {
+                    if (broker == ignored) {
+                        return true;
+                    }
+                }
+            }
+            return super.isIgnored(child);
+        }
+
     }
 
-    public static final Map<String, JmsTestHelper> KNOWN_JMS_HELPERS;
+    public static final Map<Broker, JmsTestHelper> KNOWN_JMS_HELPERS;
 
     static {
         KNOWN_JMS_HELPERS = new HashMap<>();
-        KNOWN_JMS_HELPERS.put("ActiveMQ", new ActiveMqJmsTestHelper());
-        KNOWN_JMS_HELPERS.put("Artemis", new ArtemisJmsTestHelper());
+        KNOWN_JMS_HELPERS.put(Broker.ActiveMQ, new ActiveMqJmsTestHelper());
+        KNOWN_JMS_HELPERS.put(Broker.Artemis, new ArtemisJmsTestHelper());
     }
 
     public MultipleJmsImplementations(final Class<?> klass) throws Throwable {
         super(klass, Collections.<Runner>emptyList());
     }
 
-    Runner createRunner(final String name, final JmsTestHelper helper) {
+    Runner createRunner(final Broker broker, final JmsTestHelper helper) {
         try {
             final Class<?> javaClass = getTestClass().getJavaClass();
 
-            return new WithSpecificJmsHelperRunner(javaClass, name, helper);
+            Option option = javaClass.getAnnotation(Option.class);
+            if (option != null) {
+                for (Broker ignored : option.ignore()) {
+                    if (broker == ignored) {
+                        return new IgnoredClassRunner(javaClass) {
+                            @Override
+                            public Description getDescription() {
+                                return Description.createTestDescription(javaClass, javaClass.getSimpleName() + " [" + broker.name() + "]");
+                            }
+                        };
+                    }
+                }
+            }
+
+            return new WithSpecificJmsHelperRunner(javaClass, broker, helper);
         } catch (final InitializationError e) {
             throw new IllegalStateException(e);
         }

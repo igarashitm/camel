@@ -24,21 +24,24 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.component.jms.PassThroughJmsKeyFormatStrategy;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsPassThroughtJmsKeyFormatStrategyUsingJmsConfigurationTest extends CamelTestSupport {
 
-    private String uri = "activemq:queue:hello";
+    private String uri = "jms:queue:hello";
 
     @Test
     public void testSendWithHeaders() throws Exception {
@@ -66,8 +69,8 @@ public class JmsPassThroughtJmsKeyFormatStrategyUsingJmsConfigurationTest extend
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
-        JmsComponent jms = camelContext.getComponent("activemq", JmsComponent.class);
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
+        JmsComponent jms = camelContext.getComponent("jms", JmsComponent.class);
         jms.getConfiguration().setJmsKeyFormatStrategy(new PassThroughJmsKeyFormatStrategy());
 
         return camelContext;

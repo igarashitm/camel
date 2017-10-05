@@ -28,8 +28,8 @@ public class TwoEmbeddedActiveMQBrokersTest extends CamelSpringTestSupport {
         getMockEndpoint("mock:foo").expectedMessageCount(1);
         getMockEndpoint("mock:bar").expectedMessageCount(1);
 
-        template.sendBody("activemq1:queue:foo", "foo");
-        template.sendBody("activemq2:queue:bar", "bar");
+        template.sendBody("jms1:queue:foo", "foo");
+        template.sendBody("jms2:queue:bar", "bar");
 
         assertMockEndpointsSatisfied();
     }

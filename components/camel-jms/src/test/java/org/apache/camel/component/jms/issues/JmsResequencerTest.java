@@ -34,12 +34,12 @@ public class JmsResequencerTest extends CamelSpringTestSupport {
 
     @Test
     public void testBatchResequencer() throws Exception {
-        testResequencer("activemq:queue:in1");
+        testResequencer("jms:queue:in1");
     }
 
     @Test
     public void testStreamResequencer() throws Exception {
-        testResequencer("activemq:queue:in2");
+        testResequencer("jms:queue:in2");
     }
     
     private void testResequencer(String endpoint) throws Exception {

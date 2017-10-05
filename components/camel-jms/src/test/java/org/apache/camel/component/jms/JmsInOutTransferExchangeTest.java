@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.ObjectMessage;
 
-import org.apache.activemq.command.ActiveMQObjectMessage;
 import org.apache.camel.CamelContext;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
@@ -31,9 +31,11 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.DefaultExchangeHolder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutTransferExchangeTest extends CamelTestSupport {
 
     @EndpointInject(uri = "mock:transfer")
@@ -46,7 +48,7 @@ public class JmsInOutTransferExchangeTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -77,10 +79,10 @@ public class JmsInOutTransferExchangeTest extends CamelTestSupport {
         assertTrue(transferExchange.getIn() instanceof JmsMessage);
         
         JmsMessage transferMessage = (JmsMessage)transferExchange.getIn();
-        ActiveMQObjectMessage transferActiveMQMessage = (ActiveMQObjectMessage)transferMessage.getJmsMessage();
+        ObjectMessage transferJmsMessage = (ObjectMessage)transferMessage.getJmsMessage();
         
-        assertTrue(transferActiveMQMessage.getObject() instanceof DefaultExchangeHolder);
-        DefaultExchangeHolder exchangeHolder = (DefaultExchangeHolder)transferActiveMQMessage.getObject();
+        assertTrue(transferJmsMessage.getObject() instanceof DefaultExchangeHolder);
+        DefaultExchangeHolder exchangeHolder = (DefaultExchangeHolder)transferJmsMessage.getObject();
         DefaultExchangeHolder.unmarshal(exchange, exchangeHolder);
         
         assertNotNull(exchange.getIn().getBody(SerializableRequestDto.class));
@@ -93,8 +95,8 @@ public class JmsInOutTransferExchangeTest extends CamelTestSupport {
         assertTrue(resultExchange.getIn() instanceof JmsMessage);
         
         JmsMessage resultMessage = (JmsMessage)resultExchange.getIn();
-        ActiveMQObjectMessage resultActiveMQMessage = (ActiveMQObjectMessage)resultMessage.getJmsMessage();
-        exchangeHolder = (DefaultExchangeHolder)resultActiveMQMessage.getObject();
+        ObjectMessage resultJmsMessage = (ObjectMessage)resultMessage.getJmsMessage();
+        exchangeHolder = (DefaultExchangeHolder)resultJmsMessage.getObject();
         exchange = createExchangeWithBody(null);
         DefaultExchangeHolder.unmarshal(exchange, exchangeHolder);
         
@@ -110,10 +112,10 @@ public class JmsInOutTransferExchangeTest extends CamelTestSupport {
         return new RouteBuilder() {
             public void configure() {
                 from("direct:start")
-                    .inOut("activemq:responseGenerator?transferExchange=true")
+                    .inOut("jms:responseGenerator?transferExchange=true")
                     .to("mock:result");
 
-                from("activemq:responseGenerator?transferExchange=true")
+                from("jms:responseGenerator?transferExchange=true")
                     .to("mock:transfer")
                     .process(new Processor() {
                         public void process(Exchange exchange) throws Exception {

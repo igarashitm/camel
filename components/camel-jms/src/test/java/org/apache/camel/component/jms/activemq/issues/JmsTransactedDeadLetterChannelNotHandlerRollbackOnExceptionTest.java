@@ -14,9 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.jms.issues;
+package org.apache.camel.component.jms.activemq.issues;
 
+import javax.jms.ConnectionFactory;
+
+import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
+import org.apache.camel.component.jms.issues.JmsTransactedDeadLetterChannelHandlerRollbackOnExceptionTest;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 public class JmsTransactedDeadLetterChannelNotHandlerRollbackOnExceptionTest extends JmsTransactedDeadLetterChannelHandlerRollbackOnExceptionTest {
 
@@ -31,9 +37,13 @@ public class JmsTransactedDeadLetterChannelNotHandlerRollbackOnExceptionTest ext
 
         // as we do not handle new exception, then the exception propagates back
         // and causes the transaction to rollback, and we can find the message in the ActiveMQ DLQ
-        Object dlqBody = consumer.receiveBody("activemq:ActiveMQ.DLQ", 2000);
+        Object dlqBody = consumer.receiveBody("jms:ActiveMQ.DLQ", 2000);
         assertEquals("Hello World", dlqBody);
     }
 
+    @Override
+    protected ConnectionFactory doCreateConnectionFactory() {
+        return CamelJmsTestHelper.ACTIVEMQ.createConnectionFactory(0);
+    }
 
 }

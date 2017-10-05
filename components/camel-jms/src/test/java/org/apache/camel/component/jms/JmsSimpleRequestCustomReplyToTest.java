@@ -29,6 +29,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,11 +39,12 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
 /**
  * A simple request/reply using custom reply to header.
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsSimpleRequestCustomReplyToTest extends CamelTestSupport {
 
     private static final Logger LOG = LoggerFactory.getLogger(JmsSimpleRequestCustomReplyToTest.class);
     private static String myReplyTo;
-    protected String componentName = "activemq";
+    protected String componentName = "jms";
     private CountDownLatch latch = new CountDownLatch(1);
 
     @Test
@@ -55,7 +57,7 @@ public class JmsSimpleRequestCustomReplyToTest extends CamelTestSupport {
         MockEndpoint result = getMockEndpoint("mock:result");
         result.expectedMessageCount(1);
 
-        Exchange out = template.request("activemq:queue:hello", new Processor() {
+        Exchange out = template.request("jms:queue:hello", new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.setPattern(ExchangePattern.InOnly);
                 exchange.getIn().setHeader("MyReplyQeueue", "foo");
@@ -111,8 +113,8 @@ public class JmsSimpleRequestCustomReplyToTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
-        JmsComponent jms = camelContext.getComponent("activemq", JmsComponent.class);
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
+        JmsComponent jms = camelContext.getComponent("jms", JmsComponent.class);
         // as this is a unit test I dont want to wait 20 sec before timeout occurs, so we use 10
         jms.getConfiguration().setRequestTimeout(10000);
 

@@ -37,7 +37,7 @@
         <property name="connectionFactory" ref="poolConnectionFactory"/>
     </bean>
 
-    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
         <property name="connectionFactory" ref="poolConnectionFactory"/>
         <property name="transacted" value="true"/>
         <property name="transactionManager" ref="jmsTransactionManager"/>
@@ -51,7 +51,7 @@
         </interceptSendToEndpoint>
 
         <route>
-            <from uri="activemq:start"/>
+            <from uri="jms:start"/>
             <transacted/>
             <to uri="seda:foo"/>
             <to uri="mock:end"/>

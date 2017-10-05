@@ -37,7 +37,7 @@ public class JmsComponentConfigurationTest extends CamelTestSupport {
 
     private static final Logger LOG = LoggerFactory.getLogger(JmsComponentConfigurationTest.class);
 
-    protected String componentName = "activemq456";
+    protected String componentName = "jms456";
     protected boolean verbose;
 
     @Test

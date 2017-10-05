@@ -27,12 +27,14 @@ import org.apache.camel.Header;
 import org.apache.camel.Processor;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplyManualWithJMSReplyToTest extends CamelTestSupport {
 
     @Override
@@ -40,27 +42,29 @@ public class JmsRequestReplyManualWithJMSReplyToTest extends CamelTestSupport {
         return false;
     }
 
-    @Consume(uri = "activemq:queue:foo")
+    @Consume(uri = "jms:queue:foo")
     public void doSomething(@Header("JMSReplyTo") Destination jmsReplyTo, @Body String body) throws Exception {
         assertEquals("Hello World", body);
 
-        String endpointName = "activemq:" + jmsReplyTo.toString();
+        String endpointName = "jms:" + jmsReplyTo.toString();
         template.sendBody(endpointName, "Bye World");
     }
 
+    // TODO CAMEL-11238
+    @MultipleJmsImplementations.Option(ignore=MultipleJmsImplementations.Broker.Artemis)
     @Test
     public void testManualRequestReply() throws Exception {
         context.start();
 
         // send an InOnly but force Camel to pass JMSReplyTo
-        template.send("activemq:queue:foo?preserveMessageQos=true", new Processor() {
+        template.send("jms:queue:foo?preserveMessageQos=true", new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("Hello World");
                 exchange.getIn().setHeader("JMSReplyTo", "bar");
             }
         });
 
-        String reply = consumer.receiveBody("activemq:queue:bar", 5000, String.class);
+        String reply = consumer.receiveBody("jms:queue:bar", 5000, String.class);
         assertEquals("Bye World", reply);
     }
 
@@ -68,7 +72,7 @@ public class JmsRequestReplyManualWithJMSReplyToTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }

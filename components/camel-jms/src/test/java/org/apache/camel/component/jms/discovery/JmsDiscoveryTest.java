@@ -25,15 +25,18 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ShutdownRoute;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsDiscoveryTest extends CamelTestSupport {
     protected MyRegistry registry = new MyRegistry();
 
@@ -58,7 +61,7 @@ public class JmsDiscoveryTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -77,11 +80,11 @@ public class JmsDiscoveryTest extends CamelTestSupport {
                 // lets setup the heartbeats
                 from("timer:heartbeats?delay=100")
                     .to("bean:service1?method=status")
-                    .to("activemq:topic:registry.heartbeats");
+                    .to("jms:topic:registry.heartbeats");
 
                 // defer shutting this route down as the first route depends upon it to
                 // be running so it can complete its current exchanges
-                from("activemq:topic:registry.heartbeats")
+                from("jms:topic:registry.heartbeats")
                     .shutdownRoute(ShutdownRoute.Defer)
                     .to("bean:registry?method=onEvent", "mock:result");
             }

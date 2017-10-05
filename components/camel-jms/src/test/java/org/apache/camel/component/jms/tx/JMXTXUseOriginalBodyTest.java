@@ -45,10 +45,10 @@ public class JMXTXUseOriginalBodyTest extends CamelSpringTestSupport {
     @EndpointInject(uri = "mock:checkpoint2")
     protected MockEndpoint checkpoint2;
 
-    @Produce(uri = "activemq:start")
+    @Produce(uri = "jms:start")
     protected ProducerTemplate start;
 
-    @Produce(uri = "activemq:broken")
+    @Produce(uri = "jms:broken")
     protected ProducerTemplate broken;
 
     @Override
@@ -98,7 +98,7 @@ public class JMXTXUseOriginalBodyTest extends CamelSpringTestSupport {
                     .maximumRedeliveries(2)
                     .to("mock:error");
 
-            from("activemq:broken")
+            from("jms:broken")
                     .transacted()
                     .to("mock:checkpoint1")
                     .setBody(method("foo"))
@@ -106,7 +106,7 @@ public class JMXTXUseOriginalBodyTest extends CamelSpringTestSupport {
                     .throwException(new Exception("boo"))
                     .to("mock:end");
 
-            from("activemq:start")
+            from("jms:start")
                     .transacted()
                     .to("mock:checkpoint1")
                     .setBody(constant("oh no"))

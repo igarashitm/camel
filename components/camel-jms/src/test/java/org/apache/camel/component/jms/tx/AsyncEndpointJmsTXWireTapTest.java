@@ -42,7 +42,7 @@ public class AsyncEndpointJmsTXWireTapTest extends CamelSpringTestSupport {
         getMockEndpoint("mock:tap").expectedBodiesReceived("Hi Camel");
         getMockEndpoint("mock:result").expectedBodiesReceived("Bye Camel");
 
-        template.sendBody("activemq:queue:inbox", "Hello Camel");
+        template.sendBody("jms:queue:inbox", "Hello Camel");
 
         assertMockEndpointsSatisfied();
 
@@ -57,7 +57,7 @@ public class AsyncEndpointJmsTXWireTapTest extends CamelSpringTestSupport {
             public void configure() throws Exception {
                 context.addComponent("async", new MyAsyncComponent());
 
-                from("activemq:queue:inbox")
+                from("jms:queue:inbox")
                     .transacted()
                         .process(new Processor() {
                             public void process(Exchange exchange) throws Exception {

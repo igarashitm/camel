@@ -25,11 +25,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsOnCompletionAndInterceptAndOnExceptionTest extends CamelTestSupport {
 
     @Test
@@ -42,7 +45,7 @@ public class JmsOnCompletionAndInterceptAndOnExceptionTest extends CamelTestSupp
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedBodiesReceived("Bye World");
 
-        template.sendBody("activemq:queue:start", "Hello World");
+        template.sendBody("jms:queue:start", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -57,7 +60,7 @@ public class JmsOnCompletionAndInterceptAndOnExceptionTest extends CamelTestSupp
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMessageCount(0);
 
-        template.sendBody("activemq:queue:start", "Kabom");
+        template.sendBody("jms:queue:start", "Kabom");
 
         assertMockEndpointsSatisfied();
     }
@@ -75,7 +78,7 @@ public class JmsOnCompletionAndInterceptAndOnExceptionTest extends CamelTestSupp
                 // define an on exception
                 onException(Exception.class).to("mock:exception");
 
-                from("activemq:queue:start")
+                from("jms:queue:start")
                     .process(new MyProcessor())
                     .to("mock:result");
             }
@@ -86,7 +89,7 @@ public class JmsOnCompletionAndInterceptAndOnExceptionTest extends CamelTestSupp
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }

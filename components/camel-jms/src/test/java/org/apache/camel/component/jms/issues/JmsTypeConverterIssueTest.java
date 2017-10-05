@@ -30,9 +30,11 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
@@ -41,13 +43,14 @@ import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknow
  *
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsTypeConverterIssueTest extends CamelTestSupport {
 
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -67,7 +70,7 @@ public class JmsTypeConverterIssueTest extends CamelTestSupport {
         getMockEndpoint("mock:portalxml").expectedMessageCount(1);
         getMockEndpoint("mock:historyxml").expectedMessageCount(1);
 
-        template.sendBody("activemq:queue:inbox", "<?xml version=\"1.0\"?><agent id=\"123\"></agent>");
+        template.sendBody("jms:queue:inbox", "<?xml version=\"1.0\"?><agent id=\"123\"></agent>");
 
         assertMockEndpointsSatisfied();
     }
@@ -77,7 +80,7 @@ public class JmsTypeConverterIssueTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:inbox")
+                from("jms:queue:inbox")
                         .setProperty(Exchange.CHARSET_NAME, constant("UTF-8"))
                         .setHeader("agentId", xpath("/agent/@id"))
                         .process(new FixateHeaderValuesProcessor())

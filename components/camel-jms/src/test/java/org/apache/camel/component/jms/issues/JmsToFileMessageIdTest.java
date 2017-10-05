@@ -23,16 +23,19 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.component.jms.JmsMessage;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * Unit test to verify issue we had in Camel 1.4
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsToFileMessageIdTest extends CamelTestSupport {
 
     @Test
@@ -41,7 +44,7 @@ public class JmsToFileMessageIdTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:result");
         mock.expectedMessageCount(1);
 
-        template.sendBody("activemq:foo", "Hello World");
+        template.sendBody("jms:foo", "Hello World");
 
         assertMockEndpointsSatisfied();
     }
@@ -51,7 +54,7 @@ public class JmsToFileMessageIdTest extends CamelTestSupport {
         CamelContext camelContext = super.createCamelContext();
 
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
 
         return camelContext;
     }
@@ -62,7 +65,7 @@ public class JmsToFileMessageIdTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 // Make a route from an activemq queue to a file endpoint, then try to call getMessageId()
-                from("activemq:foo")
+                from("jms:foo")
                         .process(new Processor() {
                             public void process(Exchange exchange) throws Exception {
                                 // assert camel id is based on jms id 

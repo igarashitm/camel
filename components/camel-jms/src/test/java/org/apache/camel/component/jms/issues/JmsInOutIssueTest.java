@@ -25,40 +25,43 @@ import org.apache.camel.ExchangePattern;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.CamelJmsTestHelper;
+import org.apache.camel.component.jms.MultipleJmsImplementations;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version 
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsInOutIssueTest extends CamelTestSupport {
 
     @Test
     public void testInOutWithRequestBody() throws Exception {
-        String reply = template.requestBody("activemq:queue:in", "Hello World", String.class);
+        String reply = template.requestBody("jms:queue:in", "Hello World", String.class);
         assertEquals("Bye World", reply);
     }
 
     @Test
     public void testInOutTwoTimes() throws Exception {
-        String reply = template.requestBody("activemq:queue:in", "Hello World", String.class);
+        String reply = template.requestBody("jms:queue:in", "Hello World", String.class);
         assertEquals("Bye World", reply);
 
-        reply = template.requestBody("activemq:queue:in", "Hello Camel", String.class);
+        reply = template.requestBody("jms:queue:in", "Hello Camel", String.class);
         assertEquals("Bye World", reply);
     }
 
     @Test
     public void testInOutWithAsyncRequestBody() throws Exception {
-        Future<String> reply = template.asyncRequestBody("activemq:queue:in", "Hello World", String.class);
+        Future<String> reply = template.asyncRequestBody("jms:queue:in", "Hello World", String.class);
         assertEquals("Bye World", reply.get());
     }
 
     @Test
     public void testInOutWithSendExchange() throws Exception {
-        Exchange out = template.send("activemq:queue:in", ExchangePattern.InOut, new Processor() {
+        Exchange out = template.send("jms:queue:in", ExchangePattern.InOut, new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.getIn().setBody("Hello World");
             }
@@ -69,7 +72,7 @@ public class JmsInOutIssueTest extends CamelTestSupport {
 
     @Test
     public void testInOutWithAsyncSendExchange() throws Exception {
-        Future<Exchange> out = template.asyncSend("activemq:queue:in", new Processor() {
+        Future<Exchange> out = template.asyncSend("jms:queue:in", new Processor() {
             public void process(Exchange exchange) throws Exception {
                 exchange.setPattern(ExchangePattern.InOut);
                 exchange.getIn().setBody("Hello World");
@@ -82,14 +85,14 @@ public class JmsInOutIssueTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() throws Exception {
-                from("activemq:queue:in").process(new Processor() {
+                from("jms:queue:in").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         exchange.getOut().setBody("Bye World");
                     }

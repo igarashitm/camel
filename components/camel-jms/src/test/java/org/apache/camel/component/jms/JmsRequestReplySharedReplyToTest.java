@@ -23,12 +23,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.camel.util.StopWatch;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.apache.camel.component.jms.JmsComponent.jmsComponentAutoAcknowledge;
 
 /**
  * @version
  */
+@RunWith(MultipleJmsImplementations.class)
 public class JmsRequestReplySharedReplyToTest extends CamelTestSupport {
 
     @Test
@@ -38,11 +40,11 @@ public class JmsRequestReplySharedReplyToTest extends CamelTestSupport {
         // shared is more slower than exclusive, due it need to use a JMS Message Selector
         // and has a receiveTimeout of 1 sec per default, so it react slower to new messages
 
-        assertEquals("Hello A", template.requestBody("activemq:queue:foo?replyTo=bar&replyToType=Shared", "A"));
-        assertEquals("Hello B", template.requestBody("activemq:queue:foo?replyTo=bar&replyToType=Shared", "B"));
-        assertEquals("Hello C", template.requestBody("activemq:queue:foo?replyTo=bar&replyToType=Shared", "C"));
-        assertEquals("Hello D", template.requestBody("activemq:queue:foo?replyTo=bar&replyToType=Shared", "D"));
-        assertEquals("Hello E", template.requestBody("activemq:queue:foo?replyTo=bar&replyToType=Shared", "E"));
+        assertEquals("Hello A", template.requestBody("jms:queue:foo?replyTo=bar&replyToType=Shared", "A"));
+        assertEquals("Hello B", template.requestBody("jms:queue:foo?replyTo=bar&replyToType=Shared", "B"));
+        assertEquals("Hello C", template.requestBody("jms:queue:foo?replyTo=bar&replyToType=Shared", "C"));
+        assertEquals("Hello D", template.requestBody("jms:queue:foo?replyTo=bar&replyToType=Shared", "D"));
+        assertEquals("Hello E", template.requestBody("jms:queue:foo?replyTo=bar&replyToType=Shared", "E"));
 
         long delta = watch.stop();
         assertTrue("Should be slower than about 2 seconds, was: " + delta, delta > 2000);
@@ -51,7 +53,7 @@ public class JmsRequestReplySharedReplyToTest extends CamelTestSupport {
     protected CamelContext createCamelContext() throws Exception {
         CamelContext camelContext = super.createCamelContext();
         ConnectionFactory connectionFactory = CamelJmsTestHelper.createConnectionFactory();
-        camelContext.addComponent("activemq", jmsComponentAutoAcknowledge(connectionFactory));
+        camelContext.addComponent("jms", jmsComponentAutoAcknowledge(connectionFactory));
         return camelContext;
     }
 
@@ -60,7 +62,7 @@ public class JmsRequestReplySharedReplyToTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("activemq:queue:foo")
+                from("jms:queue:foo")
                     .transform(body().prepend("Hello "));
             }
         };

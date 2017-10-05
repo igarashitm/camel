@@ -24,7 +24,9 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+@RunWith(MultipleJmsImplementations.class)
 public class JmsMessageAsOriginalMessageInDefaultUnitOfWorkTest extends CamelTestSupport {
 
     @EndpointInject(uri = "mock:result")
